@@ -63,3 +63,19 @@ type Tree<'a> =
 
 let myTree = Tree(6, Tree(2, Leaf(1), Leaf(3)), Leaf(9))
 let mappedTree = fmap times2plus3 myTree
+
+
+
+// Applicative functors
+#load "Monad.fs"
+#load "Applicative.fs"
+open Control.Applicative
+
+// lists
+let res3n4 = pure' ((+) 2) <*> [1;2]
+
+// functions
+let res3 = pure' 3 "anything"
+let res607 = fmap (+) ( (*) 100 ) 6 7
+let res606 = ( (+) <*>  (*) 100 ) 6
+let res508 = (fmap (+) ((+) 3 ) <*> (*) 100) 5

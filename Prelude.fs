@@ -1,5 +1,6 @@
 ﻿module Prelude
 
+let const' k _ = k
 
 // IO ---------------------------------------------------------------------
 
@@ -28,6 +29,7 @@ type Return() =
     static member (?<-) (notUsed:Return, cs:Return, t:'a option) = fun (x:'a) -> Some x
     static member (?<-) (notUsed:Return, cs:Return, t:'a list)   = fun (x:'a) -> [x]
     static member (?<-) (notUsed:Return, cs:Return, t:'a IO )    = fun (x:'a) -> primretIO x
+    static member (?<-) (notUsed:Return, cs:Return, t: _ -> 'a)  = fun (x:'a) -> const' x
 
 let inline return' x : 'R = ((Return()) ? ( Return()) <- Unchecked.defaultof< 'R> ) x
 
