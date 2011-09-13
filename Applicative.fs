@@ -13,4 +13,8 @@ type Apply = Apply with
 
 let inline (<*>) x y = x ? (Apply) <- y
 
-
+let inline (<<|>) f a   = fmap f a
+let inline liftA2 f a b = f <<|> a <*> b
+let inline (  *>)   x   = x |> liftA2 (const' id)
+let inline (<*  )   x   = x |> liftA2 const'
+let inline (<**>)   x   = x |> liftA2 (|>)
