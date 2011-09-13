@@ -20,6 +20,7 @@ let result =
 // desugared version
 let binded = [1;2]  >>= (fun x1 -> [10;20] >>= (fun x2 ->  return'((+) x1 x2 )))
 
+
 // IO Monad
 
 let action = do' {
@@ -47,7 +48,6 @@ let getChars    = fmap (fun (x:string) -> x.ToCharArray() |> Seq.toList ) action
 
 
 
-
 // Define a type Tree
 
 type Tree<'a> =
@@ -67,6 +67,7 @@ let mappedTree = fmap times2plus3 myTree
 
 
 // Applicative functors
+
 #load "Monad.fs"
 #load "Applicative.fs"
 open Control.Applicative
@@ -82,3 +83,15 @@ let res508 = (fmap (+) ((+) 3 ) <*> (*) 100) 5
 
 //ZipList
 let res18n24 = pure' (+) <*> ZipList(seq [8;4]) <*> ZipList(seq [10;20])
+
+
+// Monoids
+#load "Monoid.fs"
+open Data.Monoid
+
+let emptyLst:list<int> = mempty()
+let zeroInt:Sum<int>   = mempty()
+let res10 = mappend (mempty()) (Sum 10)
+let res6  = mconcat <| fmap Sum [0.4; 5.6]
+let res8  = mconcat [mempty(); Sum 2; Sum 6]
+let res8n4 = [mempty(); [8;4]]
