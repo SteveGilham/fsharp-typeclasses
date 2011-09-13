@@ -79,3 +79,6 @@ let res3 = pure' 3 "anything"
 let res607 = fmap (+) ( (*) 100 ) 6 7
 let res606 = ( (+) <*>  (*) 100 ) 6
 let res508 = (fmap (+) ((+) 3 ) <*> (*) 100) 5
+
+//ZipList
+let res18n24 = pure' (+) <*> ZipList(seq [8;4]) <*> ZipList(seq [10;20])
