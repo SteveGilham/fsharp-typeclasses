@@ -18,7 +18,7 @@ let result =
         return ((+) x1 x2) }    //   return (f x1 x2) }
 
 // desugared version
-let binded = [1;2]  >>= (fun x1 -> [10;20] >>= (fun x2 ->  return'((+) x1 x2 )))
+let lst11n21n12n22 = [1;2]  >>= (fun x1 -> [10;20] >>= (fun x2 ->  return'((+) x1 x2 )))
 
 
 // IO Monad

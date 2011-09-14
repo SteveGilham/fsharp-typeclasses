@@ -15,8 +15,8 @@ type Mappend = Mappend with
 let inline mappend x y = x ? (Mappend) <- y
 
 
-let inline mconcat x = 
-    let foldrForList  f s lst = List.foldBack f lst s    
+let inline mconcat x =
+    let foldrForList  f s lst = List.foldBack f lst s
     x |> foldrForList mappend (mempty())
 
 
