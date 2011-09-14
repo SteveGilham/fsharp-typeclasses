@@ -98,3 +98,6 @@ let res8n4 = [mempty(); [8;4]]
 let res15 = mappend (Product 15) (mempty()) 
 let resTrue = mconcat [mempty(); Any true]
 let resFalse = mconcat (fmap All [true;false])
+let resHi = mappend (mempty()) "Hi"
+let resGT = mappend (mempty()) LT
+let resEQ = mconcat [mempty(); LT ; EQ ;GT]

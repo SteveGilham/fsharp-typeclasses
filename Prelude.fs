@@ -2,6 +2,14 @@
 
 let const' k _ = k
 
+type Ordering = LT|EQ|GT
+
+let inline compare' x y =
+    match compare x y with
+    | a when a > 0 -> GT
+    | a when a < 0 -> LT
+    | _ -> EQ
+
 // IO ---------------------------------------------------------------------
 
 type IO<'a> = IO of (unit->'a) with static member Invoke(IO(f)) : 'a = f()
