@@ -15,7 +15,7 @@ let result =
     do' {                       // do {
         let! x1 = [1;2]         //   x1 <- [1;2]
         let! x2 = [10;20]       //   x2 <- [10;20]
-        return ((+) x1 x2) }    //   return (f x1 x2) }
+        return ((+) x1 x2) }    //   return ((+) x1 x2) }
 
 // desugared version
 let lst11n21n12n22 = [1;2]  >>= (fun x1 -> [10;20] >>= (fun x2 ->  return'((+) x1 x2 )))
@@ -95,3 +95,6 @@ let res10 = mappend (mempty()) (Sum 10)
 let res6  = mconcat <| fmap Sum [0.4; 5.6]
 let res8  = mconcat [mempty(); Sum 2; Sum 6]
 let res8n4 = [mempty(); [8;4]]
+let res15 = mappend (Product 15) (mempty()) 
+let resTrue = mconcat [mempty(); Any true]
+let resFalse = mconcat (fmap All [true;false])
