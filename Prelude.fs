@@ -47,7 +47,6 @@ type Bind = Bind with
             match x with
             | Some v -> k v 
             | None   -> None
-
     static member (?) (x:list<_>  , cs:Bind) =
         fun f ->
             let rec bindForLists lst f =
@@ -55,8 +54,8 @@ type Bind = Bind with
                 | x::xs -> f x @ (bindForLists xs f)
                 | [] -> [] 
             bindForLists x f
-
-    static member (?) (x:IO<_>, cs:Bind)   = fun f -> primbindIO x f
+    static member (?) (x:IO<_>, cs:Bind) = fun f -> primbindIO x f
+    static member (?) (f:_->_ , cs:Bind) = fun k r -> k (f r) r
 
 let inline (>>=) x = x ? (Bind)
 
