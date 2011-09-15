@@ -26,7 +26,7 @@ type Fmap = Fmap with
     static member (?) (x:option<_>,cs:Fmap)  = fun f -> Option.map  f x
     static member (?) (x:list<_>  ,cs:Fmap)  = fun f -> List.map    f x
     static member (?) (x:IO<_>    ,cs:Fmap)  = fun f -> primbindIO x (primretIO << f)
-    static member (?) (g:_->_     ,cs:Fmap)  = fun f x -> f (g x)
+    static member (?) (g:_->_     ,cs:Fmap)  = (>>) g
 
 let inline fmap f x = (x ? (Fmap) ) f
 
@@ -34,10 +34,10 @@ let inline fmap f x = (x ? (Fmap) ) f
 // Monad class ------------------------------------------------------------
 
 type Return = Return with
-    static member (?<-) (notUsed:Return, cs:Return, t:'a option) = fun (x:'a) -> Some x
-    static member (?<-) (notUsed:Return, cs:Return, t:'a list)   = fun (x:'a) -> [x]
-    static member (?<-) (notUsed:Return, cs:Return, t:'a IO )    = fun (x:'a) -> primretIO x
-    static member (?<-) (notUsed:Return, cs:Return, t: _ -> 'a)  = fun (x:'a) -> const' x
+    static member (?<-) (_:Return, cs:Return, t:'a option) = fun (x:'a) -> Some x
+    static member (?<-) (_:Return, cs:Return, t:'a list)   = fun (x:'a) -> [x]
+    static member (?<-) (_:Return, cs:Return, t:'a IO )    = fun (x:'a) -> primretIO x
+    static member (?<-) (_:Return, cs:Return, t: _ -> 'a)  = fun (x:'a) -> const' x
 
 let inline return' x : ^R = (Return ? (Return) <- Unchecked.defaultof< ^R> ) x
 
