@@ -13,11 +13,11 @@ let inline mempty() : ^R = (Mempty ? (Mempty) <- Unchecked.defaultof< ^R>)
 
 
 type Mappend = Mappend with    
-    static member (?<-) (x:list<_> ,cs:Mappend,y) = List.append  x y
-    static member (?<-) (x:_[]     ,cs:Mappend,y) = Array.append x y
-    static member (?<-) (x:string  ,cs:Mappend,y) = x + y
-    static member (?<-) (x:Ordering,cs:Mappend,y) = compare' x y
-    static member inline (?<-) ((x1,x2) , cs:Mappend, (y1,y2)) =  ( x1 ? (Mappend) <- y1) , ( x2 ? (Mappend) <- y2)
+    static member        (?<-) (x:list<_> , cs:Mappend, y)       = List.append  x y
+    static member        (?<-) (x:_[]     , cs:Mappend, y)       = Array.append x y
+    static member        (?<-) (x:string  , cs:Mappend, y)       = x + y
+    static member        (?<-) (x:Ordering, cs:Mappend, y)       = compare' x y
+    static member inline (?<-) ((x1,x2)   , cs:Mappend, (y1,y2)) = (x1 ? (Mappend) <- y1) , (x2 ? (Mappend) <- y2)
     
 let inline mappend (x:'a) (y:'a) : 'a = x ? (Mappend) <- y
 
