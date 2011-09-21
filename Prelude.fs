@@ -1,4 +1,4 @@
-﻿module Prelude
+ module Prelude
 
 let const' k _ = k
 
@@ -51,16 +51,14 @@ type Return = Return with
 let inline return' x : ^R = (Return ? (Return) <- Unchecked.defaultof< ^R> ) x
 
 type Bind = Bind with
-    static member (?) (x:option<_>, cs:Bind) = fun k -> match x with
-                                                        | Some v -> k v 
-                                                        | None   -> None
+    static member (?) (x:option<_>, cs:Bind) = fun f -> Option.bind f x
     static member (?) (x:list<_>  , cs:Bind) =
         fun f ->
-            let rec bindForLists lst f =
+            let rec bindForList lst f =
                 match lst with
-                | x::xs -> f x @ (bindForLists xs f)
+                | x::xs -> f x @ (bindForList xs f)
                 | [] -> [] 
-            bindForLists x f
+            bindForList x f
     static member (?) (x:IO<_>, cs:Bind) = fun f -> primbindIO x f
     static member (?) (f:_->_ , cs:Bind) = fun k r -> k (f r) r
     static member (?) (x:Either<_,_>, cs:Bind) = fun k -> match x with
