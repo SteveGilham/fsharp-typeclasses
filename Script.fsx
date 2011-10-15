@@ -1,4 +1,5 @@
-﻿#load "Prelude.fs"
+﻿#nowarn "1173"  // For F# 3.0 Preview
+#load "Prelude.fs"
 open Prelude
 
 
@@ -24,13 +25,13 @@ let lst11n21n12n22 = [1;2]  >>= (fun x1 -> [10;20] >>= (fun x2 ->  return'((+) x
 // IO Monad
 
 let action = do' {
-    let! _  = putStrLn  "What is your first name?"
+    do! putStrLn  "What is your first name?"
     let! fn = getLine
-    let! _  = putStrLn  ("Thanks, " + fn) 
-    let! _  = putStrLn  ("What is your last name?")
+    do! putStrLn  ("Thanks, " + fn) 
+    do! putStrLn  ("What is your last name?")
     let! ln = getLine
     let  fullname = fn + " " + ln
-    let! _  = putStrLn  ("Your full name is: " + fullname)
+    do! putStrLn  ("Your full name is: " + fullname)
     return fullname }
 // try -> IO.Invoke action ;;
 
@@ -108,24 +109,3 @@ let res230      = mappend (mempty(),mempty()) ([2],[3.0])
 let res243      = mappend  ([2;4],[3]) (mempty())
 let res23       = mappend (mempty()) ([2],"3")
 let resLtDualLt = mappend  (LT,Dual GT) (mempty())
-//let resDualSum2Eq35     = mappend (mempty(),[3;5]) (Dual (Sum 2,EQ),mempty())
-//let resGT234DualSum33   = mconcat [(EQ,([2],Dual (Sum 3))) ; (LT,([3;4],Dual (Sum 30))) ]
-
-#load "Foldable.fs"
-#load "Traversable.fs"
-
-open Data.Traversable
-
-let f x = if x < 200 then [3 - x] else []
-let g x = if x < 200 then Some (3 - x) else None
-
-let resSomeM100     = traverse f (Some 103)
-let resLstOfNull    = traverse f None 
-let res210          = traverse f [1;2;3]  
-let resSome210      = traverse g [1;2;3]  
-let resEmptyList    = traverse f [1000;2000;3000] 
-let resEListOfElist = traverse f []
-let resSome321  = sequenceA [Some 3;Some 2;Some 1]
-let resNone     = sequenceA [Some 3;None  ;Some 1]
-let res654      = sequenceA [ (+)3 ; (+)2 ; (+) 1] 3
-let resCombined = sequenceA [ [1;2;3] ; [4;5;6]  ]
