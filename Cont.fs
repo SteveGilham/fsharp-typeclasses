@@ -9,3 +9,5 @@ type Cont<'r,'a> = Cont of (('a->'r)->'r) with
 
 let runCont (Cont(x)) = x
 
+let callCC f = Cont <| fun k -> runCont (f (fun a -> Cont <| fun _ -> k a)) k
+
