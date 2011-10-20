@@ -40,6 +40,7 @@
     <Compile Include="Applicative.fs" />
     <Compile Include="Foldable.fs" />
     <Compile Include="Traversable.fs" />
+    <Compile Include="Cont.fs" />
     <None Include="Script.fsx" />
   </ItemGroup>
   <ItemGroup>
