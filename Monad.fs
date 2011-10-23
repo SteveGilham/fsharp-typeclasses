@@ -35,6 +35,14 @@ type DoPlusNotationBuilder() =
 let doPlus = new DoPlusNotationBuilder()
 
 
+let inline sequence ms =
+    let foldR f s lst = List.foldBack f lst s
+    let k m m' = do' { let! x = m in let! xs = m' in return (List.Cons(x,xs)) }
+    foldR k (return' []) ms
+
+let inline mapM f as' = sequence (List.map f as')
+              
+
 let inline liftM  f m1      = do' { let! x1 = m1 in return (f x1) }
 let inline liftM2 f m1 m2   = do' { let! x1 = m1 in let! x2 = m2 in return (f x1 x2) }
 let inline when' p s        = if p then s else return' ()
