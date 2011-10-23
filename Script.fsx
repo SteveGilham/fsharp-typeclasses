@@ -93,9 +93,30 @@ let res23       = mappend (mempty()) ([2],"3")
 let resLtDualLt = mappend  (LT,Dual GT) (mempty())
 
 
+// Control Monad
+#load "Monad.fs"
+open Control.Monad
+
+let a:list<int> = mzero()
+let res123      = mplus (mempty()) ([1;2;3])
+
+// MonadPlus (sample code from http://en.wikibooks.org/wiki/Haskell/MonadPlus)
+let pythags = do'{
+  let! z = [1..50]
+  let! x = [1..z]
+  let! y = [x..z]
+  do! guard (x*x + y*y = z*z)
+  return (x, y, z)}
+
+let pythags' = doPlus{
+  let! z = [1..50]
+  let! x = [1..z]
+  let! y = [x..z]
+  if (x*x + y*y = z*z) then return (x, y, z)}
+
+
 // Applicative functors
 
-#load "Monad.fs"
 #load "Applicative.fs"
 open Control.Applicative
 
