@@ -67,24 +67,6 @@ let mappedTree = fmap times2plus3 myTree
 
 
 
-// Applicative functors
-
-#load "Monad.fs"
-#load "Applicative.fs"
-open Control.Applicative
-
-// lists
-let res3n4 = pure' ((+) 2) <*> [1;2]
-
-// functions
-let res3 = pure' 3 "anything"
-let res607 = fmap (+) ( (*) 100 ) 6 7
-let res606 = ( (+) <*>  (*) 100 ) 6
-let res508 = (fmap (+) ((+) 3 ) <*> (*) 100) 5
-
-//ZipList
-let res18n24 = pure' (+) <*> ZipList(seq [8;4]) <*> ZipList(seq [10;20])
-
 
 // Monoids
 #load "Monoid.fs"
@@ -109,6 +91,28 @@ let res230      = mappend (mempty(),mempty()) ([2],[3.0])
 let res243      = mappend  ([2;4],[3]) (mempty())
 let res23       = mappend (mempty()) ([2],"3")
 let resLtDualLt = mappend  (LT,Dual GT) (mempty())
+
+
+// Applicative functors
+
+#load "Monad.fs"
+#load "Applicative.fs"
+open Control.Applicative
+
+// lists
+let res3n4 = pure' ((+) 2) <*> [1;2]
+
+// functions
+let res3 = pure' 3 "anything"
+let res607 = fmap (+) ( (*) 100 ) 6 7
+let res606 = ( (+) <*>  (*) 100 ) 6
+let res508 = (fmap (+) ((+) 3 ) <*> (*) 100) 5
+
+//ZipList
+let res18n24 = pure' (+) <*> ZipList(seq [8;4]) <*> ZipList(seq [10;20])
+
+
+
 
 
 #load "Foldable.fs"
