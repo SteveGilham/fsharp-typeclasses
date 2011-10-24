@@ -156,3 +156,8 @@ let resSome321  = sequenceA [Some 3;Some 2;Some 1]
 let resNone     = sequenceA [Some 3;None  ;Some 1]
 let res654      = sequenceA [ (+)3 ; (+)2 ; (+) 1] 3
 let resCombined = sequenceA [ [1;2;3] ; [4;5;6]  ]
+
+#load "MonadT.fs"
+open Control.Monad.Trans
+let maybeT = MaybeT [Some 2; Some 4] >>= fun x -> MaybeT [Some x; Some (x+10)]
+let listT  = ListT  (Some [2;4]    ) >>= fun x -> ListT  (Some [x; x+10]     )
