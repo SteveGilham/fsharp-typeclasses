@@ -10,7 +10,7 @@ module Maybe =
 
     type MaybeT< ^ma > = MaybeT of (^ma ) with
 
-        static member inline (?) (MaybeT x, _Functor:Fmap) = fun f -> MaybeT (fmap (Option.map f) x)
+        static member inline ( ? ) (MaybeT x, _Functor:Fmap) = fun f -> MaybeT (fmap (Option.map f) x)
 
         static member inline (?<-) (_:Return, _Monad:Return, t:MaybeT<_>) = MaybeT << return' << Some
         static member inline ( ? ) (MaybeT x, _Monad:Bind) =
@@ -40,28 +40,27 @@ module List =
 
     type ListT< ^ma > = ListT of (^ma ) with
 
-        static member inline (?) (ListT x, _Functor:Fmap) = fun f -> ListT (fmap (List.map f) x)
+        static member inline ( ? ) (ListT x     , _Functor:Fmap) = fun f -> ListT (fmap (List.map f) x)
 
         static member inline (?<-) (_:Return    , _Monad:Return, t:ListT<_>) = ListT << return' << singleton
         static member inline ( ? ) (ListT (x:^A), _Monad:Bind) =
             let inline runListT (ListT m) = m
             fun k -> ListT ( x >>= mapM (  (runListT) << k)  >>= (concat >> return') )
 
-        static member inline (?<-) (f:ListT<_->_> ,_Applicative:Apply ,x:ListT<_> ) = ap f x
+        static member inline (?<-) (f:ListT<_->_>, _Applicative:Apply, x:ListT<_> ) = ap f x
 
-        static member inline (?<-) (_      , _MonadPlus:Mzero, t:ListT<_>)   = ListT (return' [])
-        static member inline (?<-) (ListT x, _MonadPlus:Mplus, ListT y) =
-            ListT <| do' {
-                let! a = x
-                let! b = y
-                return (a @ b)}
+        static member inline (?<-) (_      , _MonadPlus:Mzero, t:ListT<_>) = ListT (return' [])
+        static member inline (?<-) (ListT x, _MonadPlus:Mplus, ListT y   ) = ListT <| do' {
+            let! a = x
+            let! b = y
+            return (a @ b)}
 
-    let inline mapListT f (ListT  m)  = ListT (f m)
-    let inline runListT   (ListT  m)  = m
+    let inline mapListT f (ListT  m) = ListT (f m)
+    let inline runListT   (ListT  m) = m
 
 
 type Lift = Lift with
-    static member inline (?<-) (x, _MonadTrans:Lift, t:Maybe.MaybeT<_>)  = Maybe.MaybeT << (liftM Some)      <| x
-    static member inline (?<-) (x, _MonadTrans:Lift, t:List . ListT<_>)  = List .ListT  << (liftM singleton) <| x
+    static member inline (?<-) (x, _MonadTrans:Lift, t:Maybe.MaybeT<_>) = Maybe.MaybeT << (liftM Some)      <| x
+    static member inline (?<-) (x, _MonadTrans:Lift, t: List. ListT<_>) = List .ListT  << (liftM singleton) <| x
 
 let inline lift x : ^R = (x ? (Lift) <- Unchecked.defaultof< ^R>)
