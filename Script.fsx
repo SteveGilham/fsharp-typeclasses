@@ -164,3 +164,9 @@ open Control.Monad.Trans.List
 
 let maybeT = MaybeT [Some 2; Some 4] >>= fun x -> MaybeT [Some x; Some (x+10)]
 let listT  = ListT  (Some [2;4]    ) >>= fun x -> ListT  (Some [x; x+10]     )
+
+let apMaybeT = ap (MaybeT [Some ((+) 3)] ) ( MaybeT [Some  3 ] )
+let apListT  = ap (ListT  (Some [(+) 3]) ) ( ListT  (Some [3]) )
+
+let getAtleast8Chars:MaybeT<_> =  lift getLine >>= fun s -> (guard (String.length s >= 8) ) >>= fun _ -> return' s
+//try -> IO.Invoke <| runMaybeT getAtleast8Chars

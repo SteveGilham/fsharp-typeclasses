@@ -13,16 +13,16 @@ module Maybe =
         static member inline ( ? ) (MaybeT x, _Functor:Fmap) = fun f -> MaybeT (fmap (Option.map f) x)
 
         static member inline (?<-) (_:Return, _Monad:Return, t:MaybeT<_>) = MaybeT << return' << Some
-        static member inline ( ? ) (MaybeT x, _Monad:Bind) =
+        static member inline (?<-) (MaybeT x, _Monad:Bind, t:MaybeT< ^b>) =
             let runMaybeT (MaybeT m) = m
-            fun f ->
+            fun (f: ^a -> MaybeT< ^b>) ->
                 MaybeT <| do' {
                     let! maybe_value = x
                     return! match maybe_value with
                             | None       -> return' None
                             | Some value -> runMaybeT <| f value}
 
-        static member inline (?<-) (f:MaybeT<_> ,_Applicative:Apply ,x:MaybeT<_> ) = ap f x
+        static member inline (?<-) (f:MaybeT<_->_> ,_Applicative:Apply ,t:MaybeT< ^b> ) = fun x -> ap f x
 
         static member inline (?<-) (_       , _MonadPlus:Mzero, t:MaybeT<_>)   = MaybeT (return' None)
         static member inline (?<-) (MaybeT x, _MonadPlus:Mplus,MaybeT y    ) =
@@ -43,11 +43,11 @@ module List =
         static member inline ( ? ) (ListT x     , _Functor:Fmap) = fun f -> ListT (fmap (List.map f) x)
 
         static member inline (?<-) (_:Return    , _Monad:Return, t:ListT<_>) = ListT << return' << singleton
-        static member inline ( ? ) (ListT (x:^A), _Monad:Bind) =
+        static member inline (?<-) (ListT x, _Monad:Bind, t:ListT< ^b>) =
             let inline runListT (ListT m) = m
-            fun k -> ListT ( x >>= mapM (  (runListT) << k)  >>= (concat >> return') )
+            fun (k: ^a -> ^b ListT) -> ListT ( x >>= mapM (  (runListT) << k)  >>= (concat >> return') )
 
-        static member inline (?<-) (f:ListT<_->_>, _Applicative:Apply, x:ListT<_> ) = ap f x
+        static member inline (?<-) (f:ListT<_->_>, _Applicative:Apply, t:ListT< ^b> ) = fun x -> ap f x
 
         static member inline (?<-) (_      , _MonadPlus:Mzero, t:ListT<_>) = ListT (return' [])
         static member inline (?<-) (ListT x, _MonadPlus:Mplus, ListT y   ) = ListT <| do' {

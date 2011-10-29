@@ -51,21 +51,20 @@ type Return = Return with
 let inline return' x : ^R = (Return ? (Return) <- Unchecked.defaultof< ^R> ) x
 
 type Bind = Bind with
-    static member (?) (x:option<_>  , _Monad:Bind) = fun f -> Option.bind f x
-    static member (?) (x:list<_>    , _Monad:Bind) = fun f ->
+    static member (?<-) (x:option<_>  , _Monad:Bind,t:option<'b>) = fun f -> Option.bind f x
+    static member (?<-) (x:list<_>    , _Monad:Bind,t:list<'b>  ) = fun f ->
         let rec bindForList lst f =
             match lst with
             | x::xs -> f x @ (bindForList xs f)
             | [] -> [] 
         bindForList x f
-    static member (?) (x:IO<_>      , _Monad:Bind) = fun f -> primbindIO x f
-    static member (?) (f:_->_       , _Monad:Bind) = fun k r -> k (f r) r
-    static member (?) (x:Either<_,_>, _Monad:Bind) = fun k -> match x with
-                                                              | Left  l -> Left l
-                                                              | Right r -> k r
+    static member (?<-) (x:IO<_>      , _Monad:Bind,t:IO<'b>) = fun f -> primbindIO x f
+    static member (?<-) (f:'e->'a     , _Monad:Bind,t:'e->'b) = fun (k:'a->'e->'b) r -> k (f r) r
+    static member (?<-) (x:Either<'e,'a>, _Monad:Bind,t:Either<'e,'b>) = fun (k:_->Either<_,'b>) -> match x with
+                                                                                                    | Left  l -> Left l
+                                                                                                    | Right r -> k r
 
-let inline (>>=) x = x ? (Bind)
-
+let inline (>>=) x f : ^R = (x ? (Bind) <- Unchecked.defaultof< ^R> ) f
 
 // Do notation ------------------------------------------------------------
 

@@ -5,7 +5,7 @@ type Cont<'r,'a> = Cont of (('a->'r)->'r) with
     static member ( ? ) ( Cont m , _Functor:Fmap)                 = fun f -> Cont <| fun c -> m (c << f)
 
     static member (?<-) (_:Return, _Monad  :Return, t:Cont<_,'a>) = fun (n:'a) -> Cont (fun k -> k n)
-    static member ( ? ) (Cont m  , _Monad  :Bind)                 =
+    static member (?<-) (Cont m  , _Monad  :Bind, t:Cont<_,_>)                 =
         let runCont (Cont x) = x
         fun f -> Cont (fun k -> m (fun a -> runCont (f a) k))
 
@@ -19,7 +19,7 @@ type ContT< ^rma> = ContT of ^rma with
     static member inline ( ? ) (ContT m , _Functor:Fmap              ) = fun f -> ContT <| fun c -> m (c << f)
 
     static member inline (?<-) (_:Return, _Monad  :Return, t:ContT<_>) = fun a -> ContT ((|>) a)
-    static member inline ( ? ) (ContT m , _Monad  :Bind              ) =
+    static member inline (?<-) (ContT m , _Monad  :Bind  , t:ContT<_>     ) =
         let inline runContT (ContT x) = x
         fun k -> ContT <| fun c -> m (fun a -> runContT (k a) c)
 
