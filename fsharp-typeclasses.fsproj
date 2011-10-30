@@ -38,9 +38,10 @@
     <Compile Include="Monad.fs" />
     <Compile Include="Monoid.fs" />
     <Compile Include="Applicative.fs" />
-    <Compile Include="MonadTrans.fs" />
     <Compile Include="Foldable.fs" />
     <Compile Include="Traversable.fs" />
+    <Compile Include="MonadTrans.fs" />
+    <Compile Include="IO.fs" />
     <Compile Include="Cont.fs" />
     <None Include="Script.fsx" />
   </ItemGroup>
