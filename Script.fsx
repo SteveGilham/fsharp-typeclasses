@@ -157,10 +157,40 @@ let resNone     = sequenceA [Some 3;None  ;Some 1]
 let res654      = sequenceA [ (+)3 ; (+)2 ; (+) 1] 3
 let resCombined = sequenceA [ [1;2;3] ; [4;5;6]  ]
 
+#load "Cont.fs"
+open Control.Monad.Cont
+
+#load "State.fs"
+open Control.Monad.State
+
+// from http://www.haskell.org/haskellwiki/State_Monad
+let x1 = runState (return' 'X') 1
+let xf:State<int,_> = return' 'X'
+let r11    = runState get 1
+let rUnit5 = runState (put 5) 1
+let rX5    = runState (do' { 
+    do! put 5
+    return 'X' }) 1
+let postincrement = do' {
+    let! x = get
+    do! put (x+1)
+    return x }
+let r12 = runState postincrement 1
+
+let tick :State<_,_> = do'{
+    let! n = get
+    do! put (n+1)
+    return n}
+
+let plusOne n = execState tick n
+let plus n x = execState (sequence <| List.replicate n tick) x
+
+
+
 #load "MonadTrans.fs"
 open Control.Monad.Trans
-open Control.Monad.Trans.Maybe
-open Control.Monad.Trans.List
+open Control.Monad.Trans.MaybeT
+open Control.Monad.Trans.ListT
 
 let maybeT = MaybeT [Some 2; Some 4] >>= fun x -> MaybeT [Some x; Some (x+10)]
 let listT  = ListT  (Some [2;4]    ) >>= fun x -> ListT  (Some [x; x+10]     )

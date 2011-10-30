@@ -21,6 +21,7 @@ let primbindIO io f = IO(fun () -> IO.Invoke (f (IO.Invoke io )))
 
 let getLine    = IO(fun() -> System.Console.ReadLine())
 let putStrLn x = IO(fun() -> printfn "%s" x)
+let print    x = IO(fun() -> printfn "%A" x)
 
 
 // Functor class ----------------------------------------------------------

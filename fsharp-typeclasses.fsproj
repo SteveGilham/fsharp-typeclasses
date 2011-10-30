@@ -40,9 +40,11 @@
     <Compile Include="Applicative.fs" />
     <Compile Include="Foldable.fs" />
     <Compile Include="Traversable.fs" />
-    <Compile Include="MonadTrans.fs" />
-    <Compile Include="IO.fs" />
     <Compile Include="Cont.fs" />
+    <Compile Include="State.fs" />
+    <Compile Include="MonadTrans.fs" />
+    <Compile Include="ContT.fs" />
+    <Compile Include="StateT.fs" />
     <None Include="Script.fsx" />
   </ItemGroup>
   <ItemGroup>
