@@ -186,6 +186,9 @@ let plusOne n = execState tick n
 let plus n x = execState (sequence <| List.replicate n tick) x
 
 
+#load "Writer.fs"
+open Control.Monad.Writer
+
 
 #load "MonadTrans.fs"
 open Control.Monad.Trans

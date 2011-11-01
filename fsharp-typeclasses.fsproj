@@ -42,9 +42,11 @@
     <Compile Include="Traversable.fs" />
     <Compile Include="Cont.fs" />
     <Compile Include="State.fs" />
+    <Compile Include="Writer.fs" />
     <Compile Include="MonadTrans.fs" />
     <Compile Include="ContT.fs" />
     <Compile Include="StateT.fs" />
+    <Compile Include="WriterT.fs" />
     <None Include="Script.fsx" />
   </ItemGroup>
   <ItemGroup>
