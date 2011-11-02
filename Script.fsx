@@ -85,6 +85,7 @@ let resHi = mappend (mempty()) "Hi"
 let resGT = mappend (mempty()) LT
 let resEQ = mconcat [mempty(); LT ; EQ ;GT]
 let res9823 = mconcat (fmap Dual [mempty();"3";"2";"8";"9"])
+// The following lines will throw a System.NullReferenceException if the .dll is compiled in Debug mode.
 let resEl00:list<int>*Sum<float> = mempty()
 let resS3P20    = mappend (Sum 1,Product 5.0) (Sum 2,Product 4.0)
 let res230      = mappend (mempty(),mempty()) ([2],[3.0])

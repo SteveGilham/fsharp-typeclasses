@@ -29,8 +29,8 @@ let inline mconcat x =
 
 
 type Dual<'a> = Dual of 'a with
-    static member inline (?<-) ( _    , _Monoid:Mempty , Dual t) = Dual ( Mempty ? (Mempty) <- t)
-    static member inline (?<-) (Dual x, _Monoid:Mappend, Dual y) = Dual ( y ? (Mappend) <- x)
+    static member inline (?<-) ( _    , _Monoid:Mempty , Dual t) = Dual (mempty()   )
+    static member inline (?<-) (Dual x, _Monoid:Mappend, Dual y) = Dual (mappend x y)
 
 type All = All of bool with
     static member (?<-) ( _   , _Monoid:Mempty , t:All) = All true
