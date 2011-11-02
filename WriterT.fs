@@ -1,7 +1,7 @@
 ﻿module Control.Monad.WriterT
 
 open Prelude
-open Control.Monad
+open Control.Monad.Base
 open Data.Monoid
 open Control.Monad.State
 open Control.Monad.Trans

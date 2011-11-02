@@ -1,7 +1,7 @@
 ﻿module Control.Applicative
 
 open Prelude
-open Control.Monad
+open Control.Monad.Base
 
 let inline pure' x = return' x
 

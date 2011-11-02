@@ -1,7 +1,7 @@
 ﻿module Control.Monad.StateT
 
 open Prelude
-open Control.Monad
+open Control.Monad.Base
 open Control.Monad.State
 open Control.Monad.Trans
 

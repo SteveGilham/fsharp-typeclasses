@@ -1,6 +1,7 @@
 ﻿module Control.Monad.Trans
 
 open Prelude
+open Control.Monad.Base
 open Control.Applicative
 
 let singleton x = [x]

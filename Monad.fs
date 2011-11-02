@@ -1,4 +1,4 @@
-﻿module Control.Monad
+﻿module Control.Monad.Base
 open Prelude
 
 // MonadPlus class ------------------------------------------------------------

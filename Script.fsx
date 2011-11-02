@@ -95,7 +95,7 @@ let resLtDualLt = mappend  (LT,Dual GT) (mempty())
 
 // Control Monad
 #load "Monad.fs"
-open Control.Monad
+open Control.Monad.Base
 
 let nameAndAddress = mapM (fun x -> putStrLn x >>= fun _ -> getLine) ["name";"address"]
 
