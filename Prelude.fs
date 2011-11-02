@@ -1,6 +1,7 @@
 ﻿module Prelude
 
 let const' k _ = k
+let maybe n f = function | None -> n | Some x -> f x
 
 type Ordering = LT|EQ|GT
 
@@ -15,9 +16,10 @@ let either f g = function Left x -> f x | Right y -> g y
 
 // IO ---------------------------------------------------------------------
 
-type IO<'a> = IO of (unit->'a) with static member Invoke(IO(f)) : 'a = f()
+type IO<'a> = IO of (unit->'a)
+let runIO (IO(f)) = f()
 let primretIO  f    = IO(fun () -> f)
-let primbindIO io f = IO(fun () -> IO.Invoke (f (IO.Invoke io )))
+let primbindIO io f = IO(fun () -> runIO (f (runIO io )))
 
 let getLine    = IO(fun() -> System.Console.ReadLine())
 let putStrLn x = IO(fun() -> printfn "%s" x)

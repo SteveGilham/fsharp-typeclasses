@@ -90,14 +90,16 @@ let inline callCC f : ^R = (f ? (CallCC) <- Unchecked.defaultof< ^R>)
 open Control.Monad.State
 
 type Get = Get with
-    static member inline (?<-) (_, _MonadState:Get, t:MaybeT<_>) = lift get
-    static member inline (?<-) (_, _MonadState:Get, t:ListT<_> ) = lift get
+    static member inline (?<-) (_, _MonadState:Get, t:MaybeT<_> ) = lift get
+    static member inline (?<-) (_, _MonadState:Get, t:ListT<_>  ) = lift get
+    static member        (?<-) (_, _MonadState:Get, t:State<_,_>) =      get
 
 let inline get() : ^R = (Get ? (Get) <- Unchecked.defaultof< ^R> )
 
 type Put = Put with
-    static member inline (?<-) (_, _MonadState:Put, t:MaybeT<_>) = lift << put
-    static member inline (?<-) (_, _MonadState:Put, t:ListT<_> ) = lift << put
+    static member inline (?<-) (_, _MonadState:Put, t:MaybeT<_> ) = lift << put
+    static member inline (?<-) (_, _MonadState:Put, t:ListT<_>  ) = lift << put
+    static member        (?<-) (_, _MonadState:Put, t:State<_,_>) =         put
 
 let inline put x : ^R = (Put ? (Put) <- Unchecked.defaultof< ^R> ) x
 
@@ -105,26 +107,28 @@ let inline put x : ^R = (Put ? (Put) <- Unchecked.defaultof< ^R> ) x
 open Control.Monad.Writer
 
 type Tell = Tell with
-    static member inline (?<-) (_, _MonadWriter:Tell, t:MaybeT<_>) = lift << tell
-    static member inline (?<-) (_, _MonadWriter:Tell, t:ListT<_> ) = lift << tell
+    static member inline (?<-) (_, _MonadWriter:Tell, t:MaybeT<_>  ) = lift << tell
+    static member inline (?<-) (_, _MonadWriter:Tell, t:ListT<_>   ) = lift << tell
+    static member        (?<-) (_, _MonadWriter:Tell, t:Writer<_,_>) =         tell
 
 let inline tell x : ^R = (Tell ? (Tell) <- Unchecked.defaultof< ^R> ) x
 
 type Listen = Listen with
-    static member inline (?<-) (m, _MonadWriter:Listen, t:MaybeT<_>) =
+    static member inline (?<-) (m, _MonadWriter:Listen, t:MaybeT<_>  ) =
         let liftMaybe (m,w) = Option.map (fun x -> (x,w) ) m
         MaybeT (listen (runMaybeT m) >>= (return' << liftMaybe))
-    static member inline (?<-) (m, _MonadWriter:Listen, t:ListT<_>) =
+    static member inline (?<-) (m, _MonadWriter:Listen, t:ListT<_>   ) =
         let liftList  (m,w) = List.map   (fun x -> (x,w) ) m
         ListT  (listen (runListT  m) >>= (return' << liftList))
+    static member        (?<-) (m, _MonadWriter:Listen, t:Writer<_,_>) = listen m
 
 let inline listen m : ^R = m ? (Listen) <- Unchecked.defaultof< ^R>
 
-let maybe n f = function | None -> n | Some x -> f x
-let _list n f = function | []   -> n | (x::_) -> f x
-
 type Pass = Pass with
-    static member inline (?<-) (m, _MonadWriter:Pass, t:MaybeT<_>) = MaybeT (runMaybeT m >>= maybe (return' None) (liftM Some      << pass << return'))
-    static member inline (?<-) (m, _MonadWriter:Pass, t:ListT<_> ) = ListT  (runListT  m >>= _list (return' []  ) (liftM singleton << pass << return'))
+    static member inline (?<-) (m, _MonadWriter:Pass, t:MaybeT<_>  ) = MaybeT (runMaybeT m >>= maybe (return' None) (liftM Some << pass << return'))
+    static member inline (?<-) (m, _MonadWriter:Pass, t:ListT<_>   ) =
+        let _list n f = function | []   -> n | (x::_) -> f x
+        ListT  (runListT  m >>= _list (return' []  ) (liftM singleton << pass << return'))
+    static member        (?<-) (m, _MonadWriter:Pass, t:Writer<_,_>) = pass m
 
 let inline pass m : ^R = m ? (Pass) <- Unchecked.defaultof< ^R>

@@ -33,7 +33,7 @@ let action = do' {
     let  fullname = fn + " " + ln
     do! putStrLn  ("Your full name is: " + fullname)
     return fullname }
-// try -> IO.Invoke action ;;
+// try -> runIO action ;;
 
 
 // Functors
@@ -45,7 +45,7 @@ let noValue     = fmap plus3 None
 let lstTimes2   = fmap times2 [1;2;3;4]
 let times2plus3 = fmap times2 plus3
 let getChars    = fmap (fun (x:string) -> x.ToCharArray() |> Seq.toList ) action
-// try -> IO.Invoke getChars ;;
+// try -> runIO getChars ;;
 
 
 
@@ -203,4 +203,4 @@ let apMaybeT = ap (MaybeT [Some ((+) 3)] ) ( MaybeT [Some  3 ] )
 let apListT  = ap (ListT  (Some [(+) 3]) ) ( ListT  (Some [3]) )
 
 let getAtleast8Chars:MaybeT<_> =  lift getLine >>= fun s -> (guard (String.length s >= 8) ) >>= fun _ -> return' s
-//try -> IO.Invoke <| runMaybeT getAtleast8Chars
+//try -> runIO <| runMaybeT getAtleast8Chars
