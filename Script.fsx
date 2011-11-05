@@ -1,4 +1,4 @@
-﻿#nowarn "1173"  // For F# 3.0 Preview
+﻿// For F# 3.0 Preview use #nowarn "1173"
 #load "Prelude.fs"
 open Prelude
 
@@ -60,7 +60,7 @@ type Tree<'a> =
         | Tree(x,t1,t2) -> Tree(f x, Tree.map f t1, Tree.map f t2)
 
 // add instance for Functor class
-    static member (?) (x:Tree<_>, _Functor:Fmap ) = fun f -> Tree.map f x
+    static member (?<-) (_, _Functor:Fmap, x:Tree<_>) = fun f -> Tree.map f x
 
 let myTree = Tree(6, Tree(2, Leaf(1), Leaf(3)), Leaf(9))
 let mappedTree = fmap times2plus3 myTree
@@ -157,6 +157,7 @@ let resSome321  = sequenceA [Some 3;Some 2;Some 1]
 let resNone     = sequenceA [Some 3;None  ;Some 1]
 let res654      = sequenceA [ (+)3 ; (+)2 ; (+) 1] 3
 let resCombined = sequenceA [ [1;2;3] ; [4;5;6]  ]
+let get3strings = sequenceA [getLine;getLine;getLine]
 
 #load "Cont.fs"
 open Control.Monad.Cont
@@ -202,5 +203,5 @@ let listT  = ListT  (Some [2;4]    ) >>= fun x -> ListT  (Some [x; x+10]     )
 let apMaybeT = ap (MaybeT [Some ((+) 3)] ) ( MaybeT [Some  3 ] )
 let apListT  = ap (ListT  (Some [(+) 3]) ) ( ListT  (Some [3]) )
 
-let getAtleast8Chars:MaybeT<_> =  lift getLine >>= fun s -> (guard (String.length s >= 8) ) >>= fun _ -> return' s
-//try -> runIO <| runMaybeT getAtleast8Chars
+let getAtLeast8Chars:MaybeT<_> =  lift getLine >>= fun s -> (guard (String.length s >= 8) ) >>= fun _ -> return' s
+//try -> runIO <| runMaybeT getAtLeast8Chars

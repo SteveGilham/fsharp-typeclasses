@@ -82,7 +82,7 @@ open Control.Monad.Cont
 type CallCC = CallCC with
     static member inline (?<-) (f, _MonadCont:CallCC, t:MaybeT<_>) = MaybeT(callCC <| fun c -> runMaybeT(f (MaybeT << c << Some)))    
     static member inline (?<-) (f, _MonadCont:CallCC, t:ListT<_> ) = ListT (callCC <| fun c -> runListT (f (ListT << c << singleton)))
-    static member (?<-) (f, _MonadCont:CallCC, t:Cont<_,_>) = callCC f
+    static member        (?<-) (f, _MonadCont:CallCC, t:Cont<_,_>) = callCC f
 
 let inline callCC f : ^R = (f ? (CallCC) <- Unchecked.defaultof< ^R>)
 

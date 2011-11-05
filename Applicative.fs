@@ -39,5 +39,5 @@ let inline optional v = Some <<|> v <|> pure' None
 
 type ZipList<'a> = ZipList of 'a seq with
     static member ( ? ) (ZipList x, _Functor: Fmap)                     = fun f -> ZipList (Seq.map f x)
-    static member (?<-) (_:Return , _Applicative:Return, t:ZipList<'a>) = fun x -> ZipList (Seq.initInfinite (fun _ -> x))
+    static member (?<-) (_, _Applicative:Return, t:ZipList<'a>) = fun x -> ZipList (Seq.initInfinite (fun _ -> x))
     static member (?<-) (ZipList f, _Applicative:Apply , ZipList x)     = ZipList (Seq.zip f x |> Seq.map (fun (f,x) -> f x))
