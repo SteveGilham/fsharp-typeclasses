@@ -15,8 +15,8 @@ let inline (<*>) x y = x ? (Apply) <- y
 
 
 type Empty = Empty with
-    static member (?<-) (_, _Alternative:Empty, t:'a option) = None
-    static member (?<-) (_, _Alternative:Empty, t:'a list  ) = []
+    static member (?<-) (_, _Alternative:Empty, _:'a option) = None
+    static member (?<-) (_, _Alternative:Empty, _:'a list  ) = []
 
 let inline empty() : ^R = (Empty ? (Empty) <- Unchecked.defaultof< ^R>)
 
@@ -38,6 +38,6 @@ let inline (<**>)   x   = x |> liftA2 (|>)
 let inline optional v = Some <<|> v <|> pure' None
 
 type ZipList<'a> = ZipList of 'a seq with
-    static member ( ? ) (ZipList x, _Functor: Fmap)                     = fun f -> ZipList (Seq.map f x)
-    static member (?<-) (_, _Applicative:Return, t:ZipList<'a>) = fun x -> ZipList (Seq.initInfinite (fun _ -> x))
-    static member (?<-) (ZipList f, _Applicative:Apply , ZipList x)     = ZipList (Seq.zip f x |> Seq.map (fun (f,x) -> f x))
+    static member (?<-) (_        , _Functor    :Fmap  ,   ZipList x  ) = fun f -> ZipList (Seq.map f x)
+    static member (?<-) (_        , _Applicative:Return, _:ZipList<'a>) = fun x -> ZipList (Seq.initInfinite (fun _ -> x))
+    static member (?<-) (ZipList f, _Applicative:Apply ,   ZipList x  ) = ZipList (Seq.zip f x |> Seq.map (fun (f,x) -> f x))

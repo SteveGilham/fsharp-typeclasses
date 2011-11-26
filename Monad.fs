@@ -4,8 +4,8 @@ open Prelude
 // MonadPlus class ------------------------------------------------------------
 
 type Mzero = Mzero with
-    static member (?<-) (_, _MonadPlus:Mzero, t:'a option) = None
-    static member (?<-) (_, _MonadPlus:Mzero, t:'a list  ) = []
+    static member (?<-) (_, _MonadPlus:Mzero, _:'a option) = None
+    static member (?<-) (_, _MonadPlus:Mzero, _:'a list  ) = []
 
 let inline mzero () : ^R = (Mzero ? (Mzero) <- Unchecked.defaultof< ^R> )
 
