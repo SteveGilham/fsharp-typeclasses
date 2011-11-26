@@ -1,4 +1,7 @@
 ﻿// For F# 3.0 Preview use #nowarn "1173"
+#nowarn "1173"
+
+
 #load "Prelude.fs"
 open Prelude
 
