@@ -4,10 +4,10 @@ open Prelude
 // MonadPlus class ------------------------------------------------------------
 
 type Mzero = Mzero with
-    static member (?<-) (_, _MonadPlus:Mzero, _:'a option) = None
-    static member (?<-) (_, _MonadPlus:Mzero, _:'a list  ) = []
+    static member (?<-) (_:unit, _MonadPlus:Mzero, _:'a option) = None
+    static member (?<-) (_:unit, _MonadPlus:Mzero, _:'a list  ) = []
 
-let inline mzero () : ^R = (Mzero ? (Mzero) <- Unchecked.defaultof< ^R> )
+let inline mzero () : ^R = (() ? (Mzero) <- Unchecked.defaultof< ^R> )
 
 type Mplus = Mplus with
     static member (?<-) (x:option<_>, _MonadPlus:Mplus, y) = match x with | None -> y | xs   -> xs

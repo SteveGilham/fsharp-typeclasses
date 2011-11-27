@@ -10,8 +10,8 @@ let concat (x:'a list list) :'a list = List.concat x
 module MaybeT =
 
     type MaybeT< ^ma > = MaybeT of (^ma ) with
-        static member inline (?<-) (_       , _Functor:Fmap  ,   MaybeT x   ) = fun f -> MaybeT (fmap (Option.map f) x)
-        static member inline (?<-) (_       , _Monad  :Return, t:MaybeT<_>  ) = MaybeT << return' << Some
+        static member inline (?<-) (_:unit  , _Functor:Fmap  ,   MaybeT x   ) = fun f -> MaybeT (fmap (Option.map f) x)
+        static member inline (?<-) (_:unit  , _Monad  :Return, t:MaybeT<_>  ) = MaybeT << return' << Some
         static member inline (?<-) (MaybeT x, _Monad  :Bind  , t:MaybeT< ^b>) =
             let runMaybeT (MaybeT m) = m
             fun (f: ^a -> MaybeT< ^b>) ->
@@ -22,7 +22,7 @@ module MaybeT =
                             | Some value -> runMaybeT <| f value}
 
         static member inline (?<-) (f:MaybeT<_->_>, _Applicative:Apply, _:MaybeT< ^b>) = fun x -> ap f x
-        static member inline (?<-) (_             , _MonadPlus  :Mzero, _:MaybeT<_>  ) = MaybeT (return' None)
+        static member inline (?<-) (_:unit        , _MonadPlus  :Mzero, _:MaybeT<_>  ) = MaybeT (return' None)
         static member inline (?<-) (MaybeT x      , _MonadPlus  :Mplus,   MaybeT y   ) =
             MaybeT <| do' {
                 let! maybe_value = x
@@ -37,14 +37,14 @@ module MaybeT =
 module ListT =
 
     type ListT< ^ma > = ListT of (^ma ) with
-        static member inline (?<-) (_        , _Functor:Fmap  ,   ListT x   ) = fun f -> ListT (fmap (List.map f) x)
-        static member inline (?<-) (_        , _Monad  :Return, _:ListT<_>  ) = ListT << return' << singleton
+        static member inline (?<-) (_:unit   , _Functor:Fmap  ,   ListT x   ) = fun f -> ListT (fmap (List.map f) x)
+        static member inline (?<-) (_:unit   , _Monad  :Return, _:ListT<_>  ) = ListT << return' << singleton
         static member inline (?<-) (ListT x  , _Monad  :Bind  , _:ListT< ^b>) =
             let inline runListT (ListT m) = m
             fun (k: ^a -> ^b ListT) -> ListT ( x >>= mapM (  (runListT) << k)  >>= (concat >> return') )
 
         static member inline (?<-) (f:ListT<_->_>, _Applicative:Apply, _:ListT< ^b>) = fun x -> ap f x
-        static member inline (?<-) (_            , _MonadPlus  :Mzero, _:ListT<_>  ) = ListT (return' [])
+        static member inline (?<-) (_:unit       , _MonadPlus  :Mzero, _:ListT<_>  ) = ListT (return' [])
         static member inline (?<-) (ListT x      , _MonadPlus  :Mplus,   ListT y   ) = ListT <| do' {
             let! a = x
             let! b = y
@@ -84,27 +84,27 @@ let inline callCC f : ^R = (f ? (CallCC) <- Unchecked.defaultof< ^R>)
 open Control.Monad.State
 
 type Get = Get with
-    static member inline (?<-) (_, _MonadState:Get, _:MaybeT<_> ) = lift get
-    static member inline (?<-) (_, _MonadState:Get, _:ListT<_>  ) = lift get
-    static member        (?<-) (_, _MonadState:Get, _:State<_,_>) =      get
+    static member inline (?<-) (_:unit, _MonadState:Get, _:MaybeT<_> ) = lift get
+    static member inline (?<-) (_:unit, _MonadState:Get, _:ListT<_>  ) = lift get
+    static member        (?<-) (_:unit, _MonadState:Get, _:State<_,_>) =      get
 
-let inline get() : ^R = (Get ? (Get) <- Unchecked.defaultof< ^R> )
+let inline get() : ^R = (() ? (Get) <- Unchecked.defaultof< ^R> )
 
 type Put = Put with
-    static member inline (?<-) (_, _MonadState:Put, _:MaybeT<_> ) = lift << put
-    static member inline (?<-) (_, _MonadState:Put, _:ListT<_>  ) = lift << put
-    static member        (?<-) (_, _MonadState:Put, _:State<_,_>) =         put
+    static member inline (?<-) (_:unit, _MonadState:Put, _:MaybeT<_> ) = lift << put
+    static member inline (?<-) (_:unit, _MonadState:Put, _:ListT<_>  ) = lift << put
+    static member        (?<-) (_:unit, _MonadState:Put, _:State<_,_>) =         put
 
-let inline put x : ^R = (Put ? (Put) <- Unchecked.defaultof< ^R> ) x
+let inline put x : ^R = (() ? (Put) <- Unchecked.defaultof< ^R> ) x
 
 
 open Control.Monad.Writer
 
 type Tell = Tell with
-    static member inline (?<-) (_, _MonadWriter:Tell, _:MaybeT<_>  ) = lift << tell
-    static member        (?<-) (_, _MonadWriter:Tell, _:Writer<_,_>) =         tell
+    static member inline (?<-) (_:unit, _MonadWriter:Tell, _:MaybeT<_>  ) = lift << tell
+    static member        (?<-) (_:unit, _MonadWriter:Tell, _:Writer<_,_>) =         tell
 
-let inline tell x : ^R = (Tell ? (Tell) <- Unchecked.defaultof< ^R> ) x
+let inline tell x : ^R = (() ? (Tell) <- Unchecked.defaultof< ^R> ) x
 
 type Listen = Listen with
     static member inline (?<-) (m, _MonadWriter:Listen, _:MaybeT<_>  ) =

@@ -4,8 +4,8 @@ open Prelude
 open Data.Monoid
 
 type Writer<'w,'a> = Writer of ('a * 'w) with
-    static member        (?<-) (_           , _Functor:Fmap  ,   Writer(a,w)) = fun f -> Writer (f a, w)
-    static member inline (?<-) (_           , _Monad  :Return, _:Writer<_,_>) = fun a -> Writer (a, mempty())
+    static member        (?<-) (_:unit      , _Functor:Fmap  ,   Writer(a,w)) = fun f -> Writer (f a, w)
+    static member inline (?<-) (_:unit      , _Monad  :Return, _:Writer<_,_>) = fun a -> Writer (a, mempty())
     static member inline (?<-) (Writer(a, w), _Monad  :Bind  , _:Writer<_,_>) =
         let runWriter (Writer x) = x
         fun k -> Writer (let (b, w') = runWriter (k a) in (b, mappend w w'))

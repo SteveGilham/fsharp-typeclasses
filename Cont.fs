@@ -2,8 +2,8 @@
 
 open Prelude
 type Cont<'r,'a> = Cont of (('a->'r)->'r) with
-    static member (?<-) (_     , _Functor:Fmap  ,   Cont m    ) = fun f -> Cont (fun c -> m (c << f))
-    static member (?<-) (_     , _Monad  :Return, _:Cont<_,'a>) = fun (n:'a) -> Cont (fun k -> k n)
+    static member (?<-) (_:unit, _Functor:Fmap  ,   Cont m    ) = fun f -> Cont (fun c -> m (c << f))
+    static member (?<-) (_:unit, _Monad  :Return, _:Cont<_,'a>) = fun (n:'a) -> Cont (fun k -> k n)
     static member (?<-) (Cont m, _Monad  :Bind  , _:Cont<_,_> ) =
         let runCont (Cont x) = x
         fun f -> Cont (fun k -> m (fun a -> runCont (f a) k))
