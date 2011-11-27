@@ -188,7 +188,7 @@ let tick :State<_,_> = do'{
     return n}
 
 let plusOne n = execState tick n
-let plus n x = execState (sequence <| List.replicate n tick) x
+let plus  n x = execState (sequence <| List.replicate n tick) x
 
 
 #load "Writer.fs"

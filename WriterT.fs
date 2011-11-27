@@ -44,7 +44,7 @@ type WriterT< ^sma> = WriterT of (^sma) with
     
 
 let inline mapWriterT f (WriterT m) = WriterT (f m)
-let inline execWriter (WriterT m) = do' {
+let inline execWriter   (WriterT m) = do' {
     let! (_, w) = m
     return w}
-let inline runWriterT (WriterT x) = x
+let inline runWriterT   (WriterT x) = x

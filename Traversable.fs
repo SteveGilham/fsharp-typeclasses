@@ -16,4 +16,4 @@ type Traverse = Traverse with
         (foldr cons_f (pure' [] )) t
 
 let inline traverse f t = f ? (Traverse) <- t
-let inline sequenceA x = traverse id x
+let inline sequenceA  x = traverse id x

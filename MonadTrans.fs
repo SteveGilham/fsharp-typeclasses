@@ -21,10 +21,9 @@ module MaybeT =
                             | None       -> return' None
                             | Some value -> runMaybeT <| f value}
 
-        static member inline (?<-) (f:MaybeT<_->_>, _Applicative:Apply, _:MaybeT< ^b>) = fun x -> ap f x
+        static member inline (?<-) (f:MaybeT<_->_>, _Applicative:Ap   , _:MaybeT< ^b>) = fun x -> ap f x
         static member inline (?<-) (_             , _MonadPlus  :Mzero, _:MaybeT<_>  ) = MaybeT (return' None)
-        static member inline (?<-) (MaybeT x      , _MonadPlus  :Mplus,   MaybeT y   ) =
-            MaybeT <| do' {
+        static member inline (?<-) (MaybeT x      , _MonadPlus  :Mplus,   MaybeT y   ) = MaybeT <| do' {
                 let! maybe_value = x
                 return! match maybe_value with
                         | None -> y
@@ -41,9 +40,9 @@ module ListT =
         static member inline (?<-) (_      , _Monad  :Return, _:ListT<_>  ) = ListT << return' << singleton
         static member inline (?<-) (ListT x, _Monad  :Bind  , _:ListT< ^b>) =
             let inline runListT (ListT m) = m
-            fun (k: ^a -> ^b ListT) -> ListT ( x >>= mapM (  (runListT) << k)  >>= (concat >> return') )
+            fun (k: ^a -> ^b ListT) -> ListT ( x >>= mapM ( runListT << k)  >>= (concat >> return') )
 
-        static member inline (?<-) (f:ListT<_->_>, _Applicative:Apply, _:ListT< ^b>) = fun x -> ap f x
+        static member inline (?<-) (f:ListT<_->_>, _Applicative:Ap   , _:ListT< ^b>) = fun x -> ap f x
         static member inline (?<-) (_            , _MonadPlus  :Mzero, _:ListT<_>  ) = ListT (return' [])
         static member inline (?<-) (ListT x      , _MonadPlus  :Mplus,   ListT y   ) = ListT <| do' {
             let! a = x
@@ -108,7 +107,7 @@ let inline tell x : ^R = (() ? (Tell) <- Unchecked.defaultof< ^R> ) x
 
 type Listen = Listen with
     static member inline (?<-) (m, _MonadWriter:Listen, _:MaybeT<_>  ) =
-        let liftMaybe (m,w) = Option.map (fun x -> (x,w) ) m
+        let liftMaybe (m,w) = Option.map (fun x -> (x,w)) m
         MaybeT (listen (runMaybeT m) >>= (return' << liftMaybe))
     static member        (?<-) (m, _MonadWriter:Listen, _:Writer<_,_>) = listen m
 

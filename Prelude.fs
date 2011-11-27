@@ -69,8 +69,8 @@ let inline (>>=) x f : ^R = (x ? (Bind) <- Unchecked.defaultof< ^R> ) f
 // Do notation ------------------------------------------------------------
 
 type DoNotationBuilder() =
-    member inline b.Return(x) = return' x
+    member inline b.Return(x)    = return' x
     member inline b.Bind(p,rest) = p >>= rest
-    member b.Let(p,rest) = rest p
-    member b.ReturnFrom(expr) = expr
+    member        b.Let (p,rest) = rest p
+    member    b.ReturnFrom(expr) = expr
 let do' = new DoNotationBuilder()

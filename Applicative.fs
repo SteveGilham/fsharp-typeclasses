@@ -5,13 +5,13 @@ open Control.Monad.Base
 
 let inline pure' x = return' x
 
-type Apply = Apply with
-    static member (?<-) (f:option<_>, _Applicative:Apply, x:option<_>) = ap f x
-    static member (?<-) (f:list<_>  , _Applicative:Apply, x:list<_>  ) = ap f x
-    static member (?<-) (f:IO<_>    , _Applicative:Apply, x          ) = ap f x
-    static member (?<-) (f:_ -> _   , _Applicative:Apply, g: _ -> _  ) = ap f g
+type Ap = Ap with
+    static member (?<-) (f:option<_>, _Applicative:Ap, x:option<_>) = ap f x
+    static member (?<-) (f:list<_>  , _Applicative:Ap, x:list<_>  ) = ap f x
+    static member (?<-) (f:IO<_>    , _Applicative:Ap, x          ) = ap f x
+    static member (?<-) (f:_ -> _   , _Applicative:Ap, g: _ -> _  ) = ap f g
 
-let inline (<*>) x y = x ? (Apply) <- y
+let inline (<*>) x y = x ? (Ap) <- y
 
 
 type Empty = Empty with
@@ -40,4 +40,4 @@ let inline optional v = Some <<|> v <|> pure' None
 type ZipList<'a> = ZipList of 'a seq with
     static member (?<-) (_        , _Functor    :Fmap  ,   ZipList x  ) = fun f -> ZipList (Seq.map f x)
     static member (?<-) (_        , _Applicative:Return, _:ZipList<'a>) = fun x -> ZipList (Seq.initInfinite (fun _ -> x))
-    static member (?<-) (ZipList f, _Applicative:Apply ,   ZipList x  ) = ZipList (Seq.zip f x |> Seq.map (fun (f,x) -> f x))
+    static member (?<-) (ZipList f, _Applicative:Ap    ,   ZipList x  ) = ZipList (Seq.zip f x |> Seq.map (fun (f,x) -> f x))
