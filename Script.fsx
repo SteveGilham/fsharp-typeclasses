@@ -63,7 +63,7 @@ type Tree<'a> =
         | Tree(x,t1,t2) -> Tree(f x, Tree.map f t1, Tree.map f t2)
 
 // add instance for Functor class
-    static member (?<-) (_:unit, _Functor:Fmap, x:Tree<_>) = fun f -> Tree.map f x
+    static member (?<-) (_    , _Functor:Fmap, x:Tree<_>) = fun f -> Tree.map f x
 
 let myTree = Tree(6, Tree(2, Leaf(1), Leaf(3)), Leaf(9))
 let mappedTree = fmap times2plus3 myTree

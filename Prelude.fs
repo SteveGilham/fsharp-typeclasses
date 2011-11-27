@@ -29,11 +29,11 @@ let print    x = IO(fun() -> printfn "%A" x)
 // Functor class ----------------------------------------------------------
 
 type Fmap = Fmap with
-    static member (?<-) (_:unit, _Functor:Fmap, x:option<_>    ) = fun f -> Option.map f x
-    static member (?<-) (_:unit, _Functor:Fmap, x:list<_>      ) = fun f -> List.map   f x
-    static member (?<-) (_:unit, _Functor:Fmap, x:IO<_>        ) = fun f -> primbindIO x (primretIO << f)
-    static member (?<-) (_:unit, _Functor:Fmap, g:_->_         ) = (>>) g
-    static member (?<-) (_:unit, _Functor:Fmap, e:Either<'a,'b>) = fun f ->
+    static member (?<-) (_, _Functor:Fmap, x:option<_>    ) = fun f -> Option.map f x
+    static member (?<-) (_, _Functor:Fmap, x:list<_>      ) = fun f -> List.map   f x
+    static member (?<-) (_, _Functor:Fmap, x:IO<_>        ) = fun f -> primbindIO x (primretIO << f)
+    static member (?<-) (_, _Functor:Fmap, g:_->_         ) = (>>) g
+    static member (?<-) (_, _Functor:Fmap, e:Either<'a,'b>) = fun f ->
         match e with
         | (Left x ) -> Left x
         | (Right y) -> Right (f y)
@@ -44,11 +44,11 @@ let inline fmap f x = (() ? (Fmap) <- x) f
 // Monad class ------------------------------------------------------------
 
 type Return = Return with
-    static member (?<-) (_:unit, _Monad:Return, _:'a option   ) = fun (x:'a) -> Some x
-    static member (?<-) (_:unit, _Monad:Return, _:'a list     ) = fun (x:'a) -> [x]
-    static member (?<-) (_:unit, _Monad:Return, _:'a IO       ) = fun (x:'a) -> primretIO x
-    static member (?<-) (_:unit, _Monad:Return, _: _ -> 'a    ) = fun (x:'a) -> const' x
-    static member (?<-) (_:unit, _Monad:Return, _:Either<_,'a>) = fun (x:'a) -> Right x
+    static member (?<-) (_, _Monad:Return, _:'a option   ) = fun (x:'a) -> Some x
+    static member (?<-) (_, _Monad:Return, _:'a list     ) = fun (x:'a) -> [x]
+    static member (?<-) (_, _Monad:Return, _:'a IO       ) = fun (x:'a) -> primretIO x
+    static member (?<-) (_, _Monad:Return, _: _ -> 'a    ) = fun (x:'a) -> const' x
+    static member (?<-) (_, _Monad:Return, _:Either<_,'a>) = fun (x:'a) -> Right x
 
 let inline return' x : ^R = (() ? (Return) <- Unchecked.defaultof< ^R> ) x
 
@@ -58,8 +58,8 @@ type Bind = Bind with
                                                                                               | x::xs -> f x @ bind f xs
                                                                                               | []    -> []
                                                                              bind f x
-    static member (?<-) (x:IO<_>      , _Monad:Bind,_:IO<'b>) = fun f -> primbindIO x f
-    static member (?<-) (f:'e->'a     , _Monad:Bind,_:'e->'b) = fun (k:'a->'e->'b) r -> k (f r) r
+    static member (?<-) (x:IO<_>        , _Monad:Bind,_:IO<'b>       ) = fun f -> primbindIO x f
+    static member (?<-) (f:'e->'a       , _Monad:Bind,_:'e->'b       ) = fun (k:'a->'e->'b) r -> k (f r) r
     static member (?<-) (x:Either<'e,'a>, _Monad:Bind,_:Either<'e,'b>) = fun (k:_->Either<_,'b>) -> match x with
                                                                                                     | Left  l -> Left l
                                                                                                     | Right r -> k r
