@@ -6,11 +6,11 @@ open Control.Monad.State
 open Control.Monad.Trans
 
 type StateT< ^s, ^m> = StateT of (^s -> ^m) with
-    static member inline ( ? ) (StateT m, _Functor:Fmap                 ) = fun f -> StateT <| fun s -> do'{
+    static member inline (?<-) (_       , _Functor:Fmap, StateT m       ) = fun f -> StateT <| fun s -> do'{
         let! (x, s') = m s
         return (f x, s')}
 
-    static member inline (?<-) (_:Return, _Monad  :Return, _:StateT<_,_>) = fun a -> StateT (fun s -> return' (a, s))
+    static member inline (?<-) (_       , _Monad  :Return, _:StateT<_,_>) = fun a -> StateT (fun s -> return' (a, s))
     static member inline (?<-) (StateT m, _Monad  :Bind  , _:StateT<_,_>) =
         let inline runStateT (StateT x) = x
         fun k -> StateT <| fun s -> do'{

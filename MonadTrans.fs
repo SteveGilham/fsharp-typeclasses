@@ -11,7 +11,7 @@ module MaybeT =
 
     type MaybeT< ^ma > = MaybeT of (^ma ) with
         static member inline (?<-) (_       , _Functor:Fmap  ,   MaybeT x   ) = fun f -> MaybeT (fmap (Option.map f) x)
-        static member inline (?<-) (_:Return, _Monad  :Return, t:MaybeT<_>  ) = MaybeT << return' << Some
+        static member inline (?<-) (_       , _Monad  :Return, t:MaybeT<_>  ) = MaybeT << return' << Some
         static member inline (?<-) (MaybeT x, _Monad  :Bind  , t:MaybeT< ^b>) =
             let runMaybeT (MaybeT m) = m
             fun (f: ^a -> MaybeT< ^b>) ->
@@ -38,7 +38,7 @@ module ListT =
 
     type ListT< ^ma > = ListT of (^ma ) with
         static member inline (?<-) (_        , _Functor:Fmap  ,   ListT x   ) = fun f -> ListT (fmap (List.map f) x)
-        static member inline (?<-) (_:Return , _Monad  :Return, _:ListT<_>  ) = ListT << return' << singleton
+        static member inline (?<-) (_        , _Monad  :Return, _:ListT<_>  ) = ListT << return' << singleton
         static member inline (?<-) (ListT x  , _Monad  :Bind  , _:ListT< ^b>) =
             let inline runListT (ListT m) = m
             fun (k: ^a -> ^b ListT) -> ListT ( x >>= mapM (  (runListT) << k)  >>= (concat >> return') )
