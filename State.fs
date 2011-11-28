@@ -2,13 +2,13 @@
 
 open Prelude
 type State<'s,'a> = State of ('s->('a * 's)) with
-    static member (?<-) (_      , _Functor:Fmap  ,   State m   ) = fun f -> State (fun s -> let (a, s') = m s in (f a, s'))
-    static member (?<-) (_      , _Monad  :Return, _:State<_,_>) = fun a -> State (fun s -> (a, s))
-    static member (?<-) (State m, _Monad  :Bind  , _:State<_,_>) =
-        let runState (State x) = x
-        fun k -> State (fun s -> let (a, s') = m s in runState (k a) s')
+    static member (?<-) (_      , _Functor:Fmap  ,   State m   ) = fun f -> State(fun s -> let (a, s') = m s in (f a, s'))
 
-let runState    (State x)  = x
+let runState (State x) = x
+type State<'s,'a> with
+    static member (?<-) (_      , _Monad  :Return, _:State<_,_>) = fun a -> State(fun s -> (a, s))
+    static member (?<-) (State m, _Monad  :Bind  , _:State<_,_>) = fun k -> State(fun s -> let (a, s') = m s in runState(k a) s')
+
 let mapState  f (State m)  = State (f << m)
 let withState f (State m)  = State (m << f)
 let evalState (State sa) s = fst (sa s)

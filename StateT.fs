@@ -10,12 +10,12 @@ type StateT< ^s, ^m> = StateT of (^s -> ^m) with
         let! (x, s') = m s
         return (f x, s')}
 
-    static member inline (?<-) (_       , _Monad :Return, _:StateT<_,_>) = fun a -> StateT (fun s -> return' (a, s))
-    static member inline (?<-) (StateT m, _Monad :Bind  , _:StateT<_,_>) =
-        let inline runStateT (StateT x) = x
-        fun k -> StateT <| fun s -> do'{
-            let! (a, s') = m s
-            return! runStateT (k a) s'}
+let inline runStateT (StateT x) = x
+type StateT< ^s, ^m> with
+    static member inline (?<-) (_       , _Monad :Return, _:StateT<_,_>) = fun a -> StateT <| fun s -> return' (a, s)
+    static member inline (?<-) (StateT m, _Monad :Bind  , _:StateT<_,_>) = fun k -> StateT <| fun s -> do'{
+        let! (a, s') = m s
+        return! runStateT (k a) s'}
 
     static member inline (?<-) (_       , _MonadPlus:Mzero, _:StateT<_,_>) = StateT <| fun _ -> mzero()
     static member inline (?<-) (StateT m, _MonadPlus:Mplus,   StateT n   ) = StateT <| fun s -> mplus (m s) (n s)
@@ -29,4 +29,3 @@ type StateT< ^s, ^m> = StateT of (^s -> ^m) with
 
 let inline mapStateT f (StateT m) = StateT (f << m)
 let inline withContT f (StateT m) = StateT (m << f)
-let inline runStateT   (StateT x) = x
