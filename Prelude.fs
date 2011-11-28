@@ -1,7 +1,7 @@
 ﻿module Prelude
 
 let const' k _ = k
-let maybe n f = function | None -> n | Some x -> f x
+let maybe  n f = function | None -> n | Some x -> f x
 
 type Ordering = LT|EQ|GT
 

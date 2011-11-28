@@ -139,10 +139,16 @@ let res9n5   = fmap ((+) 1) (ZipList(seq [8;4]))
 let res18n24 = pure' (+) <*> ZipList(seq [8;4]) <*> ZipList(seq [10;20])
 
 
-
-
-
+// Foldable
 #load "Foldable.fs"
+
+open Data.Foldable
+
+let res10n20n30 = foldMap (fun x -> [x * 10] ) [1;2;3]
+let resHW       = foldMap (fun x -> Some ("hello " + x)) (Some "world")
+
+
+// Traversable
 #load "Traversable.fs"
 
 open Data.Traversable
