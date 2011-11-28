@@ -7,6 +7,7 @@ type Mempty = Mempty with
     static member        (?<-) (_, _Monoid:Mempty, _:'a[]    ) = [||]
     static member        (?<-) (_, _Monoid:Mempty, _:string  ) = ""
     static member        (?<-) (_, _Monoid:Mempty, _:Ordering) = EQ
+    static member        (?<-) (_, _Monoid:Mempty, ()        ) = ()
     static member inline (?<-) (_, _Monoid:Mempty, _: ^A * ^B) = (() ? (Mempty) <- Unchecked.defaultof< ^A>), (() ? (Mempty) <- Unchecked.defaultof< ^B>)
 
 let inline mempty() : ^R = (() ? (Mempty) <- Unchecked.defaultof< ^R>)
@@ -17,6 +18,7 @@ type Mappend = Mappend with
     static member        (?<-) (x:_[]     , _Monoid:Mappend, y      ) = Array.append x y
     static member        (?<-) (x:string  , _Monoid:Mappend, y      ) = x + y
     static member        (?<-) (x:Ordering, _Monoid:Mappend, y      ) = compare' x y
+    static member        (?<-) ((), _Monoid:Mappend, ()             ) = ()
     static member inline (?<-) ((x1,x2)   , _Monoid:Mappend, (y1,y2)) = (x1 ? (Mappend) <- y1) , (x2 ? (Mappend) <- y2)
     
 let inline mappend (x:'a) (y:'a) : 'a = x ? (Mappend) <- y
@@ -31,6 +33,12 @@ let inline mconcat x =
 type Dual<'a> = Dual of 'a with
     static member inline (?<-) (_     , _Monoid:Mempty , _:Dual<_>) = Dual (mempty()   )
     static member inline (?<-) (Dual x, _Monoid:Mappend,   Dual y ) = Dual (mappend x y)
+
+type Endo<'a> = Endo of ('a -> 'a) with
+    static member        (?<-) (_     , _Monoid:Mempty , _:Endo<_>) = Endo id
+    static member        (?<-) (Endo f, _Monoid:Mappend,   Endo g ) = Endo (f << g)
+
+let appEndo (Endo f) = f
 
 type All = All of bool with
     static member (?<-) (_    , _Monoid:Mempty , _:All  ) = All true
