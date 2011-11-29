@@ -24,7 +24,11 @@ type Mappend = Mappend with
         | _               -> None
     static member        (?<-) (x:_[]      , _Monoid:Mappend, y      ) = Array.append x y
     static member        (?<-) (x:string   , _Monoid:Mappend, y      ) = x + y
-    static member        (?<-) (x:Ordering , _Monoid:Mappend, y      ) = compare' x y
+    static member        (?<-) (x:Ordering , _Monoid:Mappend, y      ) =
+        match (x,y) with
+        | (LT,_) -> LT
+        | (EQ,a) -> a
+        | (GT,_) -> GT
     static member        (?<-) (()         , _Monoid:Mappend, _:unit ) = ()    
     static member inline (?<-) ((x1,x2)    , _Monoid:Mappend, (y1,y2)) = (x1 ? (Mappend) <- y1) , (x2 ? (Mappend) <- y2)
     

@@ -85,15 +85,15 @@ let res15 = mappend (Product 15) (mempty())
 let resTrue = mconcat [mempty(); Any true]
 let resFalse = mconcat (fmap All [true;false])
 let resHi = mappend (mempty()) "Hi"
-let resGT = mappend (mempty()) LT
-let resEQ = mconcat [mempty(); LT ; EQ ;GT]
+let resGT = mappend (mempty()) GT
+let resLT = mconcat [mempty(); LT ; EQ ;GT]
 let res9823 = mconcat (fmap Dual [mempty();"3";"2";"8";"9"])
 let resEl00:list<int>*Sum<float> = mempty()
 let resS3P20    = mappend (Sum 1,Product 5.0) (Sum 2,Product 4.0)
 let res230      = mappend (mempty(),mempty()) ([2],[3.0])
 let res243      = mappend  ([2;4],[3]) (mempty())
 let res23       = mappend (mempty()) ([2],"3")
-let resLtDualLt = mappend  (LT,Dual GT) (mempty())
+let resLtDualGt = mappend  (LT,Dual GT) (mempty())
 
 
 // Control Monad
