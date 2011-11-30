@@ -1,5 +1,4 @@
 ﻿// For F# 3.0 Preview use #nowarn "1173"
-#nowarn "1173"
 
 
 #load "Prelude.fs"
@@ -88,6 +87,7 @@ let resHi = mappend (mempty()) "Hi"
 let resGT = mappend (mempty()) GT
 let resLT = mconcat [mempty(); LT ; EQ ;GT]
 let res9823 = mconcat (fmap Dual [mempty();"3";"2";"8";"9"])
+let resBA = mappend (Dual "A" ) (Dual "B" )
 let resEl00:list<int>*Sum<float> = mempty()
 let resS3P20    = mappend (Sum 1,Product 5.0) (Sum 2,Product 4.0)
 let res230      = mappend (mempty(),mempty()) ([2],[3.0])
@@ -144,8 +144,31 @@ let res18n24 = pure' (+) <*> ZipList(seq [8;4]) <*> ZipList(seq [10;20])
 
 open Data.Foldable
 
-let res10n20n30 = foldMap (fun x -> [x * 10] ) [1;2;3]
-let resHW       = foldMap (fun x -> Some ("hello " + x)) (Some "world")
+let resGt = foldMap (compare' 2) [1;2;3]
+let resHW = foldMap (fun x -> Some ("hello " + x)) (Some "world")
+
+module FoldableTree =
+    type Tree<'a> =
+        | Empty 
+        | Leaf of 'a 
+        | Node of (Tree<'a>) * 'a * (Tree<'a>)
+
+        // add instance for Foldable class
+        static member inline ($)   (FoldMap, t:Tree<_> ) =
+            let rec _foldMap x f =
+                match x with
+                | Empty        -> mempty()
+                | Leaf n       -> f n
+                | Node (l,k,r) -> mappend (_foldMap l f) (mappend (f k) (_foldMap r f) )
+            _foldMap t
+        static member inline (?<-) (_, Foldr, x:Tree<_>  ) = fun (f,z) -> Foldr.foldr f z x
+    
+    let myTree = Node (Node (Leaf(1), 6, Leaf(3)), 2 , Leaf(9))
+    let resSum21      = foldMap Sum     myTree
+    let resProduct324 = foldMap Product myTree
+    let res21         = foldr   (+) 0   myTree
+
+
 
 
 // Traversable

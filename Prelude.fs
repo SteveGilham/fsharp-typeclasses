@@ -1,5 +1,6 @@
 ﻿module Prelude
 
+let flip f x y = f y x
 let const' k _ = k
 let maybe  n f = function | None -> n | Some x -> f x
 
