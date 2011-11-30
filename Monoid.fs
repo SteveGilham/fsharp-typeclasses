@@ -43,7 +43,8 @@ let inline mconcat x =
 
 type Dual<'a> = Dual of 'a with
     static member inline (?<-) (_     , _Monoid:Mempty , _:Dual<_>) = Dual (mempty()   )
-    static member inline (?<-) (Dual x, _Monoid:Mappend,   Dual y ) = Dual (mappend x y)
+    static member inline (?<-) (Dual x, _Monoid:Mappend,   Dual y ) = Dual (mappend y x)
+let getDual (Dual x) = x
 
 type Endo<'a> = Endo of ('a -> 'a) with
     static member        (?<-) (_     , _Monoid:Mempty , _:Endo<_>) = Endo id
