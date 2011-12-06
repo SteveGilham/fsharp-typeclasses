@@ -26,13 +26,13 @@ type Arr = Arr with
     static member        (?<-) (f:_->_ , _Arrow:Arr , _: _ -> _     ) = f
     static member inline (?<-) (f      , _Arrow:Arr , _:Kleisli<_,_>) = Kleisli (return' <<< f)
 
-let inline arr f : ^R = (f ? (Arr) <- Unchecked.defaultof< ^R>)
+let inline arr f : ^R = f ? (Arr) <- Unchecked.defaultof< ^R>
 
 type First = First with
     static member        (?<-) (f        , _Arrow:First , _: 'a -> 'b   ) = fun (x,y) -> (f x, y)
     static member inline (?<-) (Kleisli f, _Arrow:First , _:Kleisli<_,_>) = Kleisli (fun (b,d) -> f b >>>= fun c -> return' (c,d))
 
-let inline first f : ^R = (f ? (First) <- Unchecked.defaultof< ^R>)
+let inline first f : ^R = f ? (First) <- Unchecked.defaultof< ^R>
 
 let inline second f = 
     let swap (x,y) = (y,x)

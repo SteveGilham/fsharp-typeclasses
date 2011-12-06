@@ -12,7 +12,6 @@ type WriterT< ^sma> = WriterT of (^sma) with
         return (f a, w)}
 
 let inline runWriterT   (WriterT x) = x
-
 type WriterT< ^sma> with
     static member inline (?<-) (_        , _Monad  :Return, _:WriterT<_>) = fun a -> WriterT (return' (a, mempty()))
     static member inline (?<-) (WriterT m, _Monad  :Bind  , _:WriterT<_>) =

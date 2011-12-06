@@ -7,8 +7,8 @@ open Prelude
 
 // return
 
-let anOption :option<_> = return' 2
-let aList    :list<_>   = return' 2
+let resSome2 :option<_> = return' 2
+let resSing2 :list<_>   = return' 2
 
 
 // List Monad
