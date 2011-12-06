@@ -42,3 +42,5 @@ let inline liftM2 f m1 m2 = m1 >>= fun x1 -> m2 >>= fun x2 -> return' (f x1 x2)
 let inline when'  p s     = if p then s else return' ()
 let inline unless p s     = when' (not p) s
 let inline ap     x y     = liftM2 id x y
+
+let inline (>=>)  f g     = fun x -> f x >>= g

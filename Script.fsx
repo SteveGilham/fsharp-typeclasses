@@ -120,6 +120,21 @@ let pythags' = doPlus{
   if (x*x + y*y = z*z) then return (x, y, z)}
 
 
+// Arrows
+#load "Arrow.fs"
+open Control.Arrow
+
+let r5:List<_>  = (runKleisli (id'())) 5
+let f = Kleisli (fun y -> [y;y*2;y*3]) <<< Kleisli ( fun x -> [ x + 3 ; x * 2 ] )
+let r8n16n24n10n20n30 = runKleisli f <| 5
+
+let res3n6n9 = (arr (fun y -> [y;y*2;y*3])) 3
+let resSome2n4n6:option<_> = runKleisli (arr (fun y -> [y;y*2;y*3])) 2
+
+let res500n19 = ( (*) 100) *** ((+) 9)   <| (5,10)
+let res500n14 = ( (*) 100) &&& ((+) 9)   <| 5
+
+
 // Applicative functors
 
 #load "Applicative.fs"
