@@ -131,8 +131,13 @@ let r8n16n24n10n20n30 = runKleisli f <| 5
 let res3n6n9 = (arr (fun y -> [y;y*2;y*3])) 3
 let resSome2n4n6:option<_> = runKleisli (arr (fun y -> [y;y*2;y*3])) 2
 
-let res500n19 = ( (*) 100) *** ((+) 9)   <| (5,10)
-let res500n14 = ( (*) 100) &&& ((+) 9)   <| 5
+let res500n19 = ( (*) 100) *** ((+) 9)  <| (5,10)
+let res500n14 = ( (*) 100) &&& ((+) 9)  <| 5
+
+// Arrow choice
+let resLeft7       = ( (+) 2) +++ ( (*) 10)   <| Left  5
+let res7n50        = runKleisli (Kleisli (fun y -> [y;y*2;y*3]) ||| Kleisli (fun x -> [x + 2; x * 10] )) (Right 5)
+let resLeft5n10n15 = runKleisli (Kleisli (fun y -> [y;y*2;y*3]) +++ Kleisli (fun x -> [x + 3; x *  2] )) (Left  5)
 
 
 // Applicative functors
