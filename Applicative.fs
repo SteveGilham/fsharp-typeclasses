@@ -3,13 +3,22 @@
 open Prelude
 open Control.Monad.Base
 
-let inline pure' x = return' x
+type Pure = Pure with
+    member inline this.Base                                  x = return' x
+    static member (?<-) (_, _Applicative:Pure, _:'a option   ) = fun (x:'a) -> Pure.Pure.Base x :'a option
+    static member (?<-) (_, _Applicative:Pure, _:'a list     ) = fun (x:'a) -> Pure.Pure.Base x :'a list
+    static member (?<-) (_, _Applicative:Pure, _:'a IO       ) = fun (x:'a) -> Pure.Pure.Base x :'a IO
+    static member (?<-) (_, _Applicative:Pure, _: _ -> 'a    ) = const'
+
+let inline pure' x : ^R = (() ? (Pure) <- Unchecked.defaultof< ^R> ) x
+
 
 type Ap = Ap with
-    static member (?<-) (f:option<_>, _Applicative:Ap, x:option<_>) = ap f x
-    static member (?<-) (f:list<_>  , _Applicative:Ap, x:list<_>  ) = ap f x
-    static member (?<-) (f:IO<_>    , _Applicative:Ap, x          ) = ap f x
-    static member (?<-) (f:_ -> _   , _Applicative:Ap, g: _ -> _  ) = ap f g
+    member inline this.Base                                     f x = ap f x
+    static member (?<-) (f:option<_>, _Applicative:Ap, x:option<_>) = Ap.Ap.Base f x
+    static member (?<-) (f:list<_>  , _Applicative:Ap, x:list<_>  ) = Ap.Ap.Base f x
+    static member (?<-) (f:IO<_>    , _Applicative:Ap, x          ) = Ap.Ap.Base f x
+    static member (?<-) (f:_ -> _   , _Applicative:Ap, g: _ -> _  ) = fun x ->   f x (g x)
 
 let inline (<*>) x y = x ? (Ap) <- y
 
@@ -38,6 +47,6 @@ let inline (<**>)   x   = x |> liftA2 (|>)
 let inline optional v = Some <<|> v <|> pure' None
 
 type ZipList<'a> = ZipList of 'a seq with
-    static member (?<-) (_        , _Functor    :Fmap  ,   ZipList x  ) = fun f -> ZipList (Seq.map f x)
-    static member (?<-) (_        , _Applicative:Return, _:ZipList<'a>) = fun x -> ZipList (Seq.initInfinite (fun _ -> x))
-    static member (?<-) (ZipList f, _Applicative:Ap    ,   ZipList x  ) = ZipList (Seq.zip f x |> Seq.map (fun (f,x) -> f x))
+    static member (?<-) (_        , _Functor    :Fmap,   ZipList x  ) = fun f -> ZipList (Seq.map f x)
+    static member (?<-) (_        , _Applicative:Pure, _:ZipList<'a>) = fun x -> ZipList (Seq.initInfinite (const' x))
+    static member (?<-) (ZipList f, _Applicative:Ap  ,   ZipList x  ) = ZipList (Seq.zip f x |> Seq.map (fun (f,x) -> f x))
