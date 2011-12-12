@@ -20,10 +20,10 @@ type WriterT< ^sma> with
             let! (b, w') = runWriterT (k a)
             return (b,mappend w w')}
 
-    static member inline (?<-) (_        , _MonadPlus  :Mzero , _:WriterT<_>) = WriterT (mzero())
-    static member inline (?<-) (WriterT m, _MonadPlus  :Mplus ,   WriterT n ) = WriterT (mplus m n)
+    static member inline (?<-) (_        , _MonadPlus  :Mzero , _:WriterT<_>) = WriterT(mzero())
+    static member inline (?<-) (WriterT m, _MonadPlus  :Mplus ,   WriterT n ) = WriterT(mplus m n)
 
-    static member inline (?<-) (_        , _MonadWriter:Tell  , _:WriterT<_>) = fun w -> WriterT (return' ((), w))
+    static member inline (?<-) (_        , _MonadWriter:Tell  , _:WriterT<_>) = fun w -> WriterT(return' ((), w))
     static member inline (?<-) (WriterT m, _MonadWriter:Listen, _:WriterT<_>) = WriterT <| do'{
         let! (a, w) = m
         return ((a, w), w)}
@@ -40,11 +40,14 @@ type WriterT< ^sma> with
     static member inline (?<-) (f        , _MonadCont :CallCC , _:WriterT<_>) =
         WriterT (callCC <| fun c -> runWriterT (f (fun a -> WriterT <| c (a, mempty()))))
     
+    static member inline (?<-) (_        , _MonadReader:Ask  , _:WriterT<_>) = lift ask
+    static member inline (?<-) (WriterT m, _MonadReader:Local, _:WriterT<_>) = fun f -> WriterT(local f m)
+
     static member inline (?<-) (_        , _MonadState:Get    , _:WriterT<_>) = lift get
     static member inline (?<-) (_        , _MonadState:Put    , _:WriterT<_>) = lift << put
     
 
-let inline mapWriterT f (WriterT m) = WriterT (f m)
+let inline mapWriterT f (WriterT m) = WriterT(f m)
 let inline execWriter   (WriterT m) = do' {
     let! (_, w) = m
     return w}

@@ -143,6 +143,7 @@ let resLeft5n10n15 = runKleisli (Kleisli (fun y -> [y;y*2;y*3]) +++ Kleisli (fun
 let res7      = app() ( (+) 3 , 4)
 let res4n8n12 = runKleisli (app()) (Kleisli (fun y -> [y;y*2;y*3]) , 4)
 
+
 // Applicative functors
 
 #load "Applicative.fs"
@@ -217,6 +218,25 @@ let get3strings = sequenceA [getLine;getLine;getLine]
 #load "Cont.fs"
 open Control.Monad.Cont
 
+#load "Reader.fs"
+open Control.Monad.Reader
+
+let calculateContentLen = do' {
+    let! content = ask
+    return (String.length content)}
+
+let calculateModifiedContentLen = local ( (+) "Prefix ") calculateContentLen
+
+let readerMain = do' {
+    let s = "12345"
+    let modifiedLen = runReader calculateModifiedContentLen s
+    let len = runReader calculateContentLen s
+    do! putStrLn <| "Modified 's' length: " + (string modifiedLen)
+    return! putStrLn <| "Original 's' length: " + (string len)
+    }
+
+// try -> runIO readerMain ;;
+
 #load "State.fs"
 open Control.Monad.State
 
@@ -260,3 +280,16 @@ let apListT  = ap (ListT  (Some [(+) 3]) ) ( ListT  (Some [3]) )
 
 let getAtLeast8Chars:MaybeT<_> =  lift getLine >>= fun s -> (guard (String.length s >= 8) ) >>= fun _ -> return' s
 //try -> runIO <| runMaybeT getAtLeast8Chars
+
+#load "ReaderT.fs"
+open Control.Monad.ReaderT
+
+// from http://www.haskell.org/ghc/docs/6.10.4/html/libraries/mtl/Control-Monad-Reader.html
+let printReaderContent = do' {
+    let! content = ask()
+    return! (liftIO <| putStrLn ("The Reader Content: " + content)) }
+
+let readerTMain = do'{
+    return! (runReaderT printReaderContent "Some Content") }
+
+// try -> runIO readerTMain ;;

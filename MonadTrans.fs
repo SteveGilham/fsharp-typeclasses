@@ -59,7 +59,7 @@ type Lift = Lift with
     static member inline (?<-) (x, _MonadTrans:Lift, _:MaybeT<_>) = MaybeT << (liftM Some)      <| x
     static member inline (?<-) (x, _MonadTrans:Lift, _: ListT<_>) = ListT  << (liftM singleton) <| x
 
-let inline lift x : ^R = (x ? (Lift) <- Unchecked.defaultof< ^R>)
+let inline lift x : ^R = x ? (Lift) <- Unchecked.defaultof< ^R>
 
 
 type LiftIO = LiftIO with
@@ -67,17 +67,17 @@ type LiftIO = LiftIO with
     static member inline (?<-) (x:IO<_>, _MonadIO:LiftIO, _:ListT<_> ) = lift x
     static member        (?<-) (x:IO<_>, _MonadIO:LiftIO, _:IO<_>    ) =      x
 
-let inline liftIO x : ^R = (x ? (LiftIO) <- Unchecked.defaultof< ^R>)
+let inline liftIO x : ^R = x ? (LiftIO) <- Unchecked.defaultof< ^R>
 
 
 open Control.Monad.Cont
 
 type CallCC = CallCC with
     static member inline (?<-) (f, _MonadCont:CallCC, _:MaybeT<_>) = MaybeT(callCC <| fun c -> runMaybeT(f (MaybeT << c << Some)))    
-    static member inline (?<-) (f, _MonadCont:CallCC, _:ListT<_> ) = ListT (callCC <| fun c -> runListT (f (ListT << c << singleton)))
+    static member inline (?<-) (f, _MonadCont:CallCC, _:ListT<_> ) = ListT (callCC <| fun c -> runListT (f (ListT  << c << singleton)))
     static member        (?<-) (f, _MonadCont:CallCC, _:Cont<_,_>) = callCC f
 
-let inline callCC f : ^R = (f ? (CallCC) <- Unchecked.defaultof< ^R>)
+let inline callCC f : ^R = f ? (CallCC) <- Unchecked.defaultof< ^R>
 
 
 open Control.Monad.State
@@ -87,7 +87,7 @@ type Get = Get with
     static member inline (?<-) (_, _MonadState:Get, _:ListT<_>  ) = lift get
     static member        (?<-) (_, _MonadState:Get, _:State<_,_>) =      get
 
-let inline get() : ^R = (() ? (Get) <- Unchecked.defaultof< ^R> )
+let inline get() : ^R = () ? (Get) <- Unchecked.defaultof< ^R>
 
 type Put = Put with
     static member inline (?<-) (_, _MonadState:Put, _:MaybeT<_> ) = lift << put
@@ -95,6 +95,23 @@ type Put = Put with
     static member        (?<-) (_, _MonadState:Put, _:State<_,_>) =         put
 
 let inline put x : ^R = (() ? (Put) <- Unchecked.defaultof< ^R> ) x
+
+
+open Control.Monad.Reader
+
+type Ask = Ask with
+    static member inline (?<-) (_, _MonadReader:Ask, _:MaybeT<_>  ) = lift ask
+    static member inline (?<-) (_, _MonadReader:Ask, _:ListT<_>   ) = lift ask
+    static member        (?<-) (_, _MonadReader:Ask, _:Reader<_,_>) =      ask
+
+let inline ask() : ^R = () ? (Ask) <- Unchecked.defaultof< ^R>
+
+type Local = Local with
+    static member inline (?<-) (MaybeT m, _MonadReader:Local, _:MaybeT<_>  ) = fun f -> MaybeT <| local f m
+    static member inline (?<-) (ListT  m, _MonadReader:Local, _:ListT<_>   ) = fun f -> ListT  <| local f m
+    static member        (?<-) (m       , _MonadReader:Local, _:Reader<_,_>) = fun f ->           local f m
+
+let inline local f m: ^R = (m ? (Local) <- Unchecked.defaultof< ^R>) f
 
 
 open Control.Monad.Writer
