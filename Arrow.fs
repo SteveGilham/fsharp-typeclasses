@@ -68,3 +68,10 @@ type AcRight = AcRight with
     static member inline (?<-) (_, _ArrowChoice:AcRight, Kleisli f) = arr (id'()) +++ Kleisli f
 
 let inline right f = () ? (AcRight) <- f
+
+
+type Apply = Apply with
+    static member (?<-) (_, _ArrowApply:Apply, _: ('a -> 'b) * 'a -> 'b            ) =          fun (f,x)          -> f x
+    static member (?<-) (_, _ArrowApply:Apply, _: Kleisli<(Kleisli<'a,'b> * 'a),'b>) = Kleisli (fun (Kleisli f, x) -> f x)
+
+let inline app() : ^R = () ? (Apply) <- Unchecked.defaultof< ^R>
