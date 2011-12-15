@@ -54,11 +54,8 @@ type Return = Return with
 let inline return' x : ^R = (() ? (Return) <- Unchecked.defaultof< ^R> ) x
 
 type Bind = Bind with
-    static member (?<-) (x:option<_>  , _Monad:Bind,_:option<'b>) = fun f -> Option.bind f x
-    static member (?<-) (x:list<_>    , _Monad:Bind,_:list<'b>  ) = fun f -> let rec bind f = function
-                                                                                              | x::xs -> f x @ bind f xs
-                                                                                              | []    -> []
-                                                                             bind f x
+    static member (?<-) (x:option<_>    , _Monad:Bind,_:option<'b>   ) = fun f -> Option.bind  f x
+    static member (?<-) (x:list<_>      , _Monad:Bind,_:list<'b>     ) = fun f -> List.collect f x
     static member (?<-) (x:IO<_>        , _Monad:Bind,_:IO<'b>       ) = fun f -> primbindIO x f
     static member (?<-) (f:'e->'a       , _Monad:Bind,_:'e->'b       ) = fun (k:'a->'e->'b) r -> k (f r) r
     static member (?<-) (x:Either<'e,'a>, _Monad:Bind,_:Either<'e,'b>) = fun (k:_->Either<_,'b>) -> match x with
