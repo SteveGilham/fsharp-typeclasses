@@ -9,8 +9,8 @@ let runKleisli (Kleisli f) = f
 
 
 type Id = Id with
-    static member        (?<-) (_, _Category:Id, _: 'a -> 'b    ) = id
-    static member inline (?<-) (_, _Category:Id, _:Kleisli<'a,_>) = Kleisli return'
+    static member        (?<-) (_, _Category:Id, _: 'r->'r       ) = id              : 'r->'r
+    static member inline (?<-) (_, _Category:Id, _:Kleisli<'a,'b>) = Kleisli return' :Kleisli<'a,'b>
 
 let inline id'() : ^R = (() ? (Id) <- Unchecked.defaultof< ^R>)
 

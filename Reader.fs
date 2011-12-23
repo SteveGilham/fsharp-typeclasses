@@ -6,8 +6,8 @@ type Reader<'r,'a> = Reader of ('r->'a) with
 
 let runReader (Reader x) = x
 type Reader<'s,'a> with
-    static member (?<-) (_       , _Monad  :Return, _:Reader<_,_>) = fun a -> Reader(fun _ -> a)
-    static member (?<-) (Reader m, _Monad  :Bind  , _:Reader<_,_>) = fun k -> Reader(fun r -> runReader(k (m r)) r)
+    static member (?<-) (_       , _Monad  :Return, _:Reader<'s,'a>) = fun a -> Reader(fun _ -> a)                    :Reader<'s,'a>
+    static member (?<-) (Reader m, _Monad  :Bind  , _:Reader<'s,'b>) = fun k -> Reader(fun r -> runReader(k (m r)) r) :Reader<'s,'b>
 
 
 let mapReader  f (Reader m) = Reader(f << m)

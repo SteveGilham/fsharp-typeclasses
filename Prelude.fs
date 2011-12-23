@@ -45,22 +45,22 @@ let inline fmap f x = (() ? (Fmap) <- x) f
 // Monad class ------------------------------------------------------------
 
 type Return = Return with
-    static member (?<-) (_, _Monad:Return, _:'a option   ) = fun (x:'a) -> Some x
-    static member (?<-) (_, _Monad:Return, _:'a list     ) = fun (x:'a) -> [x]
-    static member (?<-) (_, _Monad:Return, _:'a IO       ) = fun (x:'a) -> primretIO x
-    static member (?<-) (_, _Monad:Return, _: _ -> 'a    ) = fun (x:'a) -> const' x
-    static member (?<-) (_, _Monad:Return, _:Either<_,'a>) = fun (x:'a) -> Right x
+    static member (?<-) (_, _Monad:Return, _:'a option    ) = fun (x:'a) -> Some x
+    static member (?<-) (_, _Monad:Return, _:'a list      ) = fun (x:'a) -> [x]
+    static member (?<-) (_, _Monad:Return, _:'a IO        ) = fun (x:'a) -> primretIO x
+    static member (?<-) (_, _Monad:Return, _: _ -> 'a     ) = fun (x:'a) -> const' x
+    static member (?<-) (_, _Monad:Return, _:Either<'e,'a>) = fun (x:'a) -> Right x : Either<'e,'a>
 
 let inline return' x : ^R = (() ? (Return) <- Unchecked.defaultof< ^R> ) x
 
 type Bind = Bind with
-    static member (?<-) (x:option<_>    , _Monad:Bind,_:option<'b>   ) = fun f -> Option.bind  f x
-    static member (?<-) (x:list<_>      , _Monad:Bind,_:list<'b>     ) = fun f -> List.collect f x
-    static member (?<-) (x:IO<_>        , _Monad:Bind,_:IO<'b>       ) = fun f -> primbindIO x f
-    static member (?<-) (f:'e->'a       , _Monad:Bind,_:'e->'b       ) = fun (k:'a->'e->'b) r -> k (f r) r
-    static member (?<-) (x:Either<'e,'a>, _Monad:Bind,_:Either<'e,'b>) = fun (k:_->Either<_,'b>) -> match x with
-                                                                                                    | Left  l -> Left l
-                                                                                                    | Right r -> k r
+    static member (?<-) (x:option<_>   , _Monad:Bind,_:option<'b>   ) = fun (f:_->option<'b>  ) -> Option.bind  f x
+    static member (?<-) (x:list<_>     , _Monad:Bind,_:list<'b>     ) = fun (f:_->list<'b>    ) -> List.collect f x
+    static member (?<-) (x:IO<_>       , _Monad:Bind,_:IO<'b>       ) = fun (f:_->IO<'b>      ) -> primbindIO x f
+    static member (?<-) (f:'e->'a      , _Monad:Bind,_:'e->'b       ) = fun (k:_->_->'b) r      -> k (f r) r
+    static member (?<-) (x:Either<'e,_>, _Monad:Bind,_:Either<'e,'b>) = fun (k:_->Either<_,'b>) -> match x with
+                                                                                                   | Left  l -> Left l
+                                                                                                   | Right r -> k r
 
 let inline (>>=) x f : ^R = (x ? (Bind) <- Unchecked.defaultof< ^R> ) f
 

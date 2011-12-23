@@ -6,8 +6,8 @@ type State<'s,'a> = State of ('s->('a * 's)) with
 
 let runState (State x) = x
 type State<'s,'a> with
-    static member (?<-) (_      , _Monad  :Return, _:State<_,_>) = fun a -> State(fun s -> (a, s))
-    static member (?<-) (State m, _Monad  :Bind  , _:State<_,_>) = fun k -> State(fun s -> let (a, s') = m s in runState(k a) s')
+    static member (?<-) (_      , _Monad  :Return, _:State<'s,'a>) = fun a -> State(fun s -> (a, s))                                :State<'s,'a>
+    static member (?<-) (State m, _Monad  :Bind  , _:State<'s,'b>) = fun k -> State(fun s -> let (a, s') = m s in runState(k a) s') :State<'s,'b>
 
 let mapState  f (State m)  = State(f << m)
 let withState f (State m)  = State(m << f)

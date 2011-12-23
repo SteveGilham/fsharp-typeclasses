@@ -3,13 +3,14 @@
 open Prelude
 
 type Mempty = Mempty with    
-    static member        (?<-) (_, _Monoid:Mempty, _:'a list  ) = []    
-    static member        (?<-) (_, _Monoid:Mempty, _:'a option) = None
-    static member        (?<-) (_, _Monoid:Mempty, _:'a[]     ) = [||]
+    static member        (?<-) (_, _Monoid:Mempty, _:'a list  ) = []    :'a list
+    static member        (?<-) (_, _Monoid:Mempty, _:'a option) = None  :'a option
+    static member        (?<-) (_, _Monoid:Mempty, _:'a[]     ) = [||]  :'a[]
     static member        (?<-) (_, _Monoid:Mempty, _:string   ) = ""
     static member        (?<-) (_, _Monoid:Mempty, _:Ordering ) = EQ
     static member        (?<-) (_, _Monoid:Mempty, _:unit     ) = ()
-    static member inline (?<-) (_, _Monoid:Mempty, _: ^A * ^B ) = (() ? (Mempty) <- Unchecked.defaultof< ^A>) , (() ? (Mempty) <- Unchecked.defaultof< ^B>)
+    static member inline (?<-) (_, _Monoid:Mempty, _: ^A * ^B ) =
+        (() ? (Mempty) <- Unchecked.defaultof< ^A>) , (() ? (Mempty) <- Unchecked.defaultof< ^B>) : ^A * ^B
 
 let inline mempty() : ^R = (() ? (Mempty) <- Unchecked.defaultof< ^R>)
 
@@ -30,7 +31,8 @@ type Mappend = Mappend with
         | (EQ,a) -> a
         | (GT,_) -> GT
     static member        (?<-) (()         , _Monoid:Mappend, _:unit ) = ()    
-    static member inline (?<-) ((x1,x2)    , _Monoid:Mappend, (y1,y2)) = (x1 ? (Mappend) <- y1) , (x2 ? (Mappend) <- y2)
+    static member inline (?<-) ((x1:'a,x2:'b)    , _Monoid:Mappend, (y1:'a,y2:'b)) = 
+        (x1 ? (Mappend) <- y1) , (x2 ? (Mappend) <- y2) :'a*'b
     
 let inline mappend (x:'a) (y:'a) : 'a = x ? (Mappend) <- y
 
@@ -42,13 +44,13 @@ let inline mconcat x =
 
 
 type Dual<'a> = Dual of 'a with
-    static member inline (?<-) (_     , _Monoid:Mempty , _:Dual<_>) = Dual (mempty()   )
-    static member inline (?<-) (Dual x, _Monoid:Mappend,   Dual y ) = Dual (mappend y x)
+    static member inline (?<-) (_     , _Monoid:Mempty , _:Dual<'m>) = Dual (mempty()   ) :Dual<'m>
+    static member inline (?<-) (Dual x, _Monoid:Mappend,   Dual y  ) = Dual (mappend y x)
 let getDual (Dual x) = x
 
 type Endo<'a> = Endo of ('a -> 'a) with
-    static member        (?<-) (_     , _Monoid:Mempty , _:Endo<_>) = Endo id
-    static member        (?<-) (Endo f, _Monoid:Mappend,   Endo g ) = Endo (f << g)
+    static member        (?<-) (_     , _Monoid:Mempty , _:Endo<'m>) = Endo id  :Endo<'m>
+    static member        (?<-) (Endo f, _Monoid:Mappend,   Endo g  ) = Endo (f << g)
 
 let appEndo (Endo f) = f
 
@@ -61,9 +63,9 @@ type Any = Any of bool with
     static member (?<-) (Any x, _Monoid:Mappend,   Any y) = Any (x || y)
 
 type Sum<'a> = Sum of 'a with
-    static member inline (?<-) (_    , _Monoid:Mempty , _:Sum<_>) = Sum LanguagePrimitives.GenericZero
-    static member inline (?<-) (Sum x, _Monoid:Mappend,   Sum y ) = Sum (x + y)
+    static member inline (?<-) (_         , _Monoid:Mempty , _:Sum<'n>   ) = Sum LanguagePrimitives.GenericZero :Sum<'n>
+    static member inline (?<-) (Sum (x:'n), _Monoid:Mappend,   Sum (y:'n)) = Sum (x + y)                        :Sum<'n>
 
 type Product<'a> = Product of 'a with
-    static member inline (?<-) (_        , _Monoid:Mempty , _:Product<_>) = Product LanguagePrimitives.GenericOne
-    static member inline (?<-) (Product x, _Monoid:Mappend,   Product y ) = Product (x * y)
+    static member inline (?<-) (_             , _Monoid:Mempty , _:Product<'n>   ) = Product LanguagePrimitives.GenericOne :Product<'n>
+    static member inline (?<-) (Product (x:'n), _Monoid:Mappend,   Product (y:'n)) = Product (x * y)                       :Product<'n>

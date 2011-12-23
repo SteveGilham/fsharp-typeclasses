@@ -8,8 +8,8 @@ type Writer<'w,'a> = Writer of ('a * 'w) with
 
 let runWriter (Writer x) = x
 type Writer<'w,'a> with
-    static member inline (?<-) (_           , _Monad  :Return, _:Writer<_,_>) = fun a -> Writer(a, mempty())
-    static member inline (?<-) (Writer(a, w), _Monad  :Bind  , _:Writer<_,_>) = fun k -> Writer(let (b, w') = runWriter(k a) in (b, mappend w w'))
+    static member inline (?<-) (_           , _Monad  :Return, _:Writer<'s,'a>) = fun a -> Writer(a, mempty())                                       :Writer<'s,'a>
+    static member inline (?<-) (Writer(a, w), _Monad  :Bind  , _:Writer<'s,'b>) = fun k -> Writer(let (b, w') = runWriter(k a) in (b, mappend w w')) :Writer<'s,'b>
 
 let mapWriter f (Writer m)   = Writer(f m)
 let execWriter  (Writer m) s = snd m
