@@ -44,3 +44,4 @@ let inline unless p s     = when' (not p) s
 let inline ap     x y     = liftM2 id x y
 
 let inline (>=>)  f g x   = f x >>= g
+let inline (<=<)  g f x   = f x >>= g

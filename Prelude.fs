@@ -63,6 +63,7 @@ type Bind = Bind with
                                                                                                    | Right r -> k r
 
 let inline (>>=) x f : ^R = (x ? (Bind) <- Unchecked.defaultof< ^R> ) f
+let inline (=<<) f x : ^R = (x ? (Bind) <- Unchecked.defaultof< ^R> ) f
 
 // Do notation ------------------------------------------------------------
 
