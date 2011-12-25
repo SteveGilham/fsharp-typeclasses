@@ -89,12 +89,14 @@ let resLT = mconcat [mempty(); LT ; EQ ;GT]
 let res9823 = mconcat (fmap Dual [mempty();"3";"2";"8";"9"])
 let resBA = mappend (Dual "A" ) (Dual "B" )
 let resEl00:list<int>*Sum<float> = mempty()
-let resS3P20    = mappend (Sum 1,Product 5.0) (Sum 2,Product 4.0)
-let res230      = mappend (mempty(),mempty()) ([2],[3.0])
-let res243      = mappend  ([2;4],[3]) (mempty())
-let res23       = mappend (mempty()) ([2],"3")
-let resLtDualGt = mappend  (LT,Dual GT) (mempty())
-
+let resS3P20     = mappend (Sum 1,Product 5.0) (Sum 2,Product 4.0)
+let res230       = mappend (mempty(),mempty()) ([2],[3.0])
+let res243       = mappend  ([2;4],[3]) (mempty())
+let res23        = mappend (mempty()) ([2],"3")
+let resLtDualGt  = mappend  (LT,Dual GT) (mempty())
+let res230hiSum2 = mappend (mempty(), mempty(), Sum 2) ([2], ([3.0], "hi"), mempty())
+let res230hiS4P3 = mappend (mempty(), mempty()       ) ([2], ([3.0], "hi", Sum 4, Product 3))
+let tuple5 :string*(Any*string)*(All*All*All)*Sum<int>*string = mempty()
 
 // Control Monad
 #load "Monad.fs"

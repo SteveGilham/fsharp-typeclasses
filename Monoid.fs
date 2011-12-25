@@ -9,10 +9,17 @@ type Mempty = Mempty with
     static member        (?<-) (_, _Monoid:Mempty, _:string   ) = ""
     static member        (?<-) (_, _Monoid:Mempty, _:Ordering ) = EQ
     static member        (?<-) (_, _Monoid:Mempty, _:unit     ) = ()
-    static member inline (?<-) (_, _Monoid:Mempty, _: ^A * ^B ) =
-        (() ? (Mempty) <- Unchecked.defaultof< ^A>) , (() ? (Mempty) <- Unchecked.defaultof< ^B>) : ^A * ^B
 
 let inline mempty() : ^R = (() ? (Mempty) <- Unchecked.defaultof< ^R>)
+
+type Mempty with static member inline (?<-)  (_, _Monoid:Mempty, _: 'a*'b         ) =
+                    (mempty(),mempty()                           ): 'a*'b
+type Mempty with static member inline (?<-)  (_, _Monoid:Mempty, _: 'a*'b*'c      ) =
+                    (mempty(),mempty(),mempty()                  ): 'a*'b*'c
+type Mempty with static member inline (?<-)  (_, _Monoid:Mempty, _: 'a*'b*'c*'d   ) =
+                    (mempty(),mempty(),mempty(),mempty()         ): 'a*'b*'c*'d
+type Mempty with static member inline (?<-)  (_, _Monoid:Mempty, _: 'a*'b*'c*'d*'e) =
+                    (mempty(),mempty(),mempty(),mempty(),mempty()): 'a*'b*'c*'d*'e
 
 
 type Mappend = Mappend with        
@@ -30,12 +37,18 @@ type Mappend = Mappend with
         | (LT,_) -> LT
         | (EQ,a) -> a
         | (GT,_) -> GT
-    static member        (?<-) (()         , _Monoid:Mappend, _:unit ) = ()    
-    static member inline (?<-) ((x1:'a,x2:'b)    , _Monoid:Mappend, (y1:'a,y2:'b)) = 
-        (x1 ? (Mappend) <- y1) , (x2 ? (Mappend) <- y2) :'a*'b
-    
+    static member        (?<-) (()         , _Monoid:Mappend, _:unit ) = ()
+
 let inline mappend (x:'a) (y:'a) : 'a = x ? (Mappend) <- y
 
+type Mappend with static member inline (?<-) ((x1,x2         ), _Monoid:Mappend, (y1,y2         )) = 
+                    (mappend x1 y1,mappend x2 y2                                          ) :'a*'b
+type Mappend with static member inline (?<-) ((x1,x2,x3      ), _Monoid:Mappend, (y1,y2,y3      )) =
+                    (mappend x1 y1,mappend x2 y2,mappend x3 y3                            ) :'a*'b*'c
+type Mappend with static member inline (?<-) ((x1,x2,x3,x4   ), _Monoid:Mappend, (y1,y2,y3,y4   )) =
+                    (mappend x1 y1,mappend x2 y2,mappend x3 y3,mappend x4 y4              ) :'a*'b*'c*'d
+type Mappend with static member inline (?<-) ((x1,x2,x3,x4,x5), _Monoid:Mappend, (y1,y2,y3,y4,y5)) =
+                    (mappend x1 y1,mappend x2 y2,mappend x3 y3,mappend x4 y4,mappend x5 y5) :'a*'b*'c*'d*'e
 
 let inline mconcat x =
     let foldR f s lst = List.foldBack f lst s
