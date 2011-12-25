@@ -30,14 +30,19 @@ let print    x = IO(fun() -> printfn "%A" x)
 // Functor class ----------------------------------------------------------
 
 type Fmap = Fmap with
-    static member (?<-) (_, _Functor:Fmap, x:option<_>    ) = fun f -> Option.map f x
-    static member (?<-) (_, _Functor:Fmap, x:list<_>      ) = fun f -> List.map   f x
-    static member (?<-) (_, _Functor:Fmap, x:IO<_>        ) = fun f -> primbindIO x (primretIO << f)
+    static member (?<-) (_, _Functor:Fmap, x:option<_>    ) = fun f -> Option.map  f x
+    static member (?<-) (_, _Functor:Fmap, x:list<_>      ) = fun f -> List.map    f x    
+    static member (?<-) (_, _Functor:Fmap, x:IO<_>        ) = fun f -> primbindIO  x (primretIO << f)
     static member (?<-) (_, _Functor:Fmap, g:_->_         ) = (>>) g
     static member (?<-) (_, _Functor:Fmap, e:Either<'a,'b>) = fun f ->
         match e with
         | (Left x ) -> Left x
         | (Right y) -> Right (f y)
+    static member (?<-) (_, _Functor:Fmap, x:array<_>     ) = fun f -> Array.map   f x
+    static member (?<-) (_, _Functor:Fmap, x:_ [,]        ) = fun f -> Array2D.map f x
+    static member (?<-) (_, _Functor:Fmap, x:_ [,,]       ) = fun f -> Array3D.map f x
+    static member (?<-) (_, _Functor:Fmap, x:_ [,,,]      ) = fun f -> 
+        Array4D.init (x.GetLength 0) (x.GetLength 1) (x.GetLength 2) (x.GetLength 3) (fun a b c d -> f x.[a,b,c,d])
 
 let inline fmap f x = (() ? (Fmap) <- x) f
 
