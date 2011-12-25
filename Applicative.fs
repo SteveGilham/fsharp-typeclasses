@@ -29,7 +29,7 @@ type Empty = Empty with
     static member (?<-) (_, _Alternative:Empty, _:'a option) = None
     static member (?<-) (_, _Alternative:Empty, _:'a list  ) = []
 
-let inline empty() : ^R = (() ? (Empty) <- Unchecked.defaultof< ^R>)
+let inline empty() : ^R = () ? (Empty) <- Unchecked.defaultof< ^R>
 
 
 type Append = Append with    

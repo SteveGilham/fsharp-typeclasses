@@ -10,7 +10,7 @@ type Mempty = Mempty with
     static member        (?<-) (_, _Monoid:Mempty, _:Ordering ) = EQ
     static member        (?<-) (_, _Monoid:Mempty, _:unit     ) = ()
 
-let inline mempty() : ^R = (() ? (Mempty) <- Unchecked.defaultof< ^R>)
+let inline mempty() : ^R = () ? (Mempty) <- Unchecked.defaultof< ^R>
 
 type Mempty with static member inline (?<-)  (_, _Monoid:Mempty, _: 'a*'b         ) =
                     (mempty(),mempty()                           ): 'a*'b
@@ -67,6 +67,8 @@ type Endo<'a> = Endo of ('a -> 'a) with
 
 let appEndo (Endo f) = f
 
+open LanguagePrimitives
+
 type All = All of bool with
     static member (?<-) (_    , _Monoid:Mempty , _:All  ) = All true
     static member (?<-) (All x, _Monoid:Mappend,   All y) = All (x && y)
@@ -76,9 +78,9 @@ type Any = Any of bool with
     static member (?<-) (Any x, _Monoid:Mappend,   Any y) = Any (x || y)
 
 type Sum<'a> = Sum of 'a with
-    static member inline (?<-) (_         , _Monoid:Mempty , _:Sum<'n>   ) = Sum LanguagePrimitives.GenericZero :Sum<'n>
-    static member inline (?<-) (Sum (x:'n), _Monoid:Mappend,   Sum (y:'n)) = Sum (x + y)                        :Sum<'n>
+    static member inline (?<-) (_         , _Monoid:Mempty , _:Sum<'n>  ) = Sum GenericZero :Sum<'n>
+    static member inline (?<-) (Sum (x:'n), _Monoid:Mappend,   Sum(y:'n)) = Sum (x + y)     :Sum<'n>
 
 type Product<'a> = Product of 'a with
-    static member inline (?<-) (_             , _Monoid:Mempty , _:Product<'n>   ) = Product LanguagePrimitives.GenericOne :Product<'n>
-    static member inline (?<-) (Product (x:'n), _Monoid:Mappend,   Product (y:'n)) = Product (x * y)                       :Product<'n>
+    static member inline (?<-) (_             , _Monoid:Mempty , _:Product<'n>  ) = Product GenericOne :Product<'n>
+    static member inline (?<-) (Product (x:'n), _Monoid:Mappend,   Product(y:'n)) = Product (x * y)    :Product<'n>
