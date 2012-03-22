@@ -22,8 +22,8 @@ type ReaderT< ^r, ^m> with
 
     static member inline (?<-) (m        , _MonadTrans:Lift, _:ReaderT<_,_>) = ReaderT <| fun _ -> m
 
-    static member inline (?<-) (_        , _MonadState :Ask   , _:ReaderT<_,_>) = ReaderT return'
-    static member inline (?<-) (ReaderT m, _MonadState :Local , _:ReaderT<_,_>) = fun f -> ReaderT(fun r -> m (f r))
+    static member inline (?<-) (_        , _MonadReader:Ask   , _:ReaderT<_,_>) = ReaderT return'
+    static member inline (?<-) (ReaderT m, _MonadReader:Local , _:ReaderT<_,_>) = fun f -> ReaderT(fun r -> m (f r))
 
     static member inline (?<-) (x:IO<_>  , _MonadIO :LiftIO   , _:ReaderT<_,_>) = lift x
 
