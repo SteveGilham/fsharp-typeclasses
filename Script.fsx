@@ -62,7 +62,7 @@ type Tree<'a> =
         | Tree(x,t1,t2) -> Tree(f x, Tree.map f t1, Tree.map f t2)
 
 // add instance for Functor class
-    static member (?<-) (_    , _Functor:Fmap, x:Tree<_>) = fun f -> Tree.map f x
+    static member fmap (Functor, x:Tree<_>      ) = fun f -> Tree.map   f x
 
 let myTree = Tree(6, Tree(2, Leaf(1), Leaf(3)), Leaf(9))
 let mappedTree = fmap times2plus3 myTree
@@ -91,12 +91,14 @@ let resBA = mappend (Dual "A" ) (Dual "B" )
 let resEl00:list<int>*Sum<float> = mempty()
 let resS3P20     = mappend (Sum 1,Product 5.0) (Sum 2,Product 4.0)
 let res230       = mappend (mempty(),mempty()) ([2],[3.0])
-let res243       = mappend  ([2;4],[3]) (mempty())
+let res243       = mappend ([2;4],[3]) (mempty())
 let res23        = mappend (mempty()) ([2],"3")
-let resLtDualGt  = mappend  (LT,Dual GT) (mempty())
+let resLtDualGt  = mappend (LT,Dual GT) (mempty())
 let res230hiSum2 = mappend (mempty(), mempty(), Sum 2) ([2], ([3.0], "hi"), mempty())
 let res230hiS4P3 = mappend (mempty(), mempty()       ) ([2], ([3.0], "hi", Sum 4, Product 3))
 let tuple5 :string*(Any*string)*(All*All*All)*Sum<int>*string = mempty()
+
+
 
 // Control Monad
 #load "Monad.fs"
@@ -180,14 +182,14 @@ module FoldableTree =
         | Node of (Tree<'a>) * 'a * (Tree<'a>)
 
         // add instance for Foldable class
-        static member inline (?<-)   (_, FoldMap, t:Tree<_> ) =
+        static member inline foldMap   (Foldable, t:Tree<_> ) =
             let rec _foldMap x f =
                 match x with
                 | Empty        -> mempty()
                 | Leaf n       -> f n
                 | Node (l,k,r) -> mappend (_foldMap l f) (mappend (f k) (_foldMap r f) )
             _foldMap t
-        static member inline (?<-) (_, Foldr, x:Tree<_>  ) = fun (f,z) -> Foldr.Base f z x
+        static member inline foldr (Foldable, x:Tree<_>  ) = fun (f,z) -> Foldable.foldr f z x
     
     let myTree = Node (Node (Leaf(1), 6, Leaf(3)), 2 , Leaf(9))
     let resSum21      = foldMap Sum     myTree

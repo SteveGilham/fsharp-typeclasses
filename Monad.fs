@@ -2,18 +2,17 @@
 open Prelude
 
 // MonadPlus class ------------------------------------------------------------
+#nowarn "64"
+type MonadPlus = MonadPlus with
+    static member mzero (MonadPlus, _:'a option) = None
+    static member mzero (MonadPlus, _:'a list  ) = []
 
-type Mzero = Mzero with
-    static member (?<-) (_, _MonadPlus:Mzero, _:'a option) = None
-    static member (?<-) (_, _MonadPlus:Mzero, _:'a list  ) = []
+    static member mplus (MonadPlus, x:option<_>, y) = match x with | None -> y | xs   -> xs
+    static member mplus (MonadPlus, x:list<_>  , y) = List.append  x y
 
-let inline mzero () : ^R = () ? (Mzero) <- Unchecked.defaultof< ^R>
 
-type Mplus = Mplus with
-    static member (?<-) (x:option<_>, _MonadPlus:Mplus, y) = match x with | None -> y | xs   -> xs
-    static member (?<-) (x:list<_>  , _MonadPlus:Mplus, y) = List.append  x y
-
-let inline mplus (x:'a) (y:'a) : 'a = x ? (Mplus) <- y
+let inline mzero () : ^R = ((^C or ^R) : (static member mzero : ^C * ^R -> _     ) (MonadPlus,    Unchecked.defaultof< ^R>))
+let inline mplus (x:'a) (y:'a) : 'a = ((^C or ^a or ^R) : (static member mplus: ^C * ^a * ^R -> _) (MonadPlus, x, y))
 
 let inline msum x =
     let foldR f s lst = List.foldBack f lst s
