@@ -1665,8 +1665,8 @@ typeConstraint:
       { WhereTyparSupportsNull($1,lhs(parseState)) }
   | typar COLON LPAREN classMemberSpfn RPAREN 
       { WhereTyparSupportsMember([ $1 ],$4,lhs(parseState)) }
-  | LPAREN typar OR typar RPAREN COLON LPAREN classMemberSpfn RPAREN 
-      { WhereTyparSupportsMember([ $2 ; $4 ],$8,lhs(parseState)) }
+  | LPAREN typarList RPAREN COLON LPAREN classMemberSpfn RPAREN 
+      { WhereTyparSupportsMember( $2 ,$6,lhs(parseState)) }
   | typar COLON DELEGATE typeArgsNoHpaDeprecated
       { WhereTyparIsDelegate($1,$4,lhs(parseState)) }
   | typar COLON IDENT typeArgsNoHpaDeprecated
@@ -1679,6 +1679,10 @@ typeConstraint:
         | "equality" -> WhereTyparIsEquatable($1,lhs(parseState))
         | "unmanaged" -> WhereTyparIsUnmanaged($1,lhs(parseState))
         | nm -> raiseParseErrorAt (rhs parseState 3) (FSComp.SR.parsUnexpectedIdentifier(nm)) }
+
+typarList: 
+  | typar OR typarList { $1 :: $3 } 
+  | typar { [$1] }
 
 unionRepr:
   /* Note the next three rules are required to disambiguate this from type x = y */
@@ -2790,7 +2794,13 @@ parenExprBody:
 
 staticallyKnownHeadTypars:
   | staticallyKnownHeadTypar { [$1] }
-  | LPAREN staticallyKnownHeadTypar OR staticallyKnownHeadTypar RPAREN { [$2 ; $4 ] }
+  | LPAREN staticallyKnownHeadTyparList RPAREN { $2 }
+
+staticallyKnownHeadTyparList: 
+  | staticallyKnownHeadTypar OR staticallyKnownHeadTyparList { $1 :: $3 } 
+  | staticallyKnownHeadTypar { [$1] }
+
+
 
 braceExpr:
   | LBRACE braceExprBody RBRACE 
