@@ -61,14 +61,14 @@ type MonadTrans = MonadTrans with
     static member inline lift (MonadTrans, x, _:MaybeT<_>) = MaybeT << (liftM Some)      <| x
     static member inline lift (MonadTrans, x, _: ListT<_>) = ListT  << (liftM singleton) <| x
 
-let inline lift x : ^R = ((^C or ^a or ^R) : (static member lift  : ^C * ^a * ^R -> _) (MonadTrans, x, Unchecked.defaultof< ^R>))
+let inline lift x : ^R = ((^C or ^a or ^R) : (static member lift  : ^C * ^a * ^R -> _) (MonadTrans, x, defaultof< ^R>))
 
 type MonadIO = MonadIO with
     static member inline liftIO (MonadIO, x:IO<_>, _:MaybeT<_>) = lift x
     static member inline liftIO (MonadIO, x:IO<_>, _:ListT<_> ) = lift x
     static member        liftIO (MonadIO, x:IO<_>, _:IO<_>    ) =      x
 
-let inline liftIO x : ^R = ((^C or ^a or ^R) : (static member liftIO  : ^C * ^a * ^R -> _) (MonadIO, x, Unchecked.defaultof< ^R>))
+let inline liftIO x : ^R = ((^C or ^a or ^R) : (static member liftIO  : ^C * ^a * ^R -> _) (MonadIO, x, defaultof< ^R>))
 
 
 open Control.Monad.Cont
@@ -78,7 +78,7 @@ type MonadCont = MonadCont with
     static member inline callCC (MonadCont, f, _:ListT<_> ) = ListT (callCC <| fun c -> runListT (f (ListT  << c << singleton)))
     static member        callCC (MonadCont, f, _:Cont<_,_>) = callCC f
 
-let inline callCC f : ^R = ((^C or ^a or ^R) : (static member callCC  : ^C * ^a * ^R -> _) (MonadCont, f, Unchecked.defaultof< ^R>))
+let inline callCC f : ^R = ((^C or ^a or ^R) : (static member callCC  : ^C * ^a * ^R -> _) (MonadCont, f, defaultof< ^R>))
 
 
 open Control.Monad.State
@@ -92,8 +92,8 @@ type MonadState = MonadState with
     static member inline put (MonadState, _:ListT<_>  ) = lift << put
     static member        put (MonadState, _:State<_,_>) =         put
 
-let inline get() : ^R = ((^C or ^R) : (static member get  : ^C * ^R -> _) (MonadState, Unchecked.defaultof< ^R>))
-let inline put x : ^R = ((^C or ^R) : (static member put  : ^C * ^R -> _) (MonadState, Unchecked.defaultof< ^R>)) x
+let inline get() : ^R = ((^C or ^R) : (static member get  : ^C * ^R -> _) (MonadState, defaultof< ^R>))
+let inline put x : ^R = ((^C or ^R) : (static member put  : ^C * ^R -> _) (MonadState, defaultof< ^R>)) x
 
 
 open Control.Monad.Reader
@@ -107,8 +107,8 @@ type MonadReader = MonadReader with
     static member inline local (MonadReader, ListT  m, _:ListT<_>   ) = fun f -> ListT  <| local f m
     static member        local (MonadReader, m       , _:Reader<_,_>) = fun f ->           local f m
 
-let inline ask()    : ^R = ((^C or ^R)       : (static member ask  : ^C * ^R -> _     ) (MonadReader,    Unchecked.defaultof< ^R>))
-let inline local f m: ^R = ((^C or ^a or ^R) : (static member local: ^C * ^a * ^R -> _) (MonadReader, m, Unchecked.defaultof< ^R>)) f
+let inline ask()    : ^R = ((^C or ^R)       : (static member ask  : ^C * ^R -> _     ) (MonadReader,    defaultof< ^R>))
+let inline local f m: ^R = ((^C or ^a or ^R) : (static member local: ^C * ^a * ^R -> _) (MonadReader, m, defaultof< ^R>)) f
 
 
 open Control.Monad.Writer
@@ -126,6 +126,6 @@ type MonadWriter = MonadWriter with
     static member        pass (MonadWriter, m, _:Writer<_,_>) = pass m
 
 
-let inline tell x   : ^R = ((^C or ^R)       : (static member tell  : ^C * ^R -> _     ) (MonadWriter,    Unchecked.defaultof< ^R>)) x
-let inline listen m : ^R = ((^C or ^a or ^R) : (static member listen: ^C * ^a * ^R -> _) (MonadWriter, m, Unchecked.defaultof< ^R>))
-let inline pass   m : ^R = ((^C or ^a or ^R) : (static member pass  : ^C * ^a * ^R -> _) (MonadWriter, m, Unchecked.defaultof< ^R>))
+let inline tell x   : ^R = ((^C or ^R)       : (static member tell  : ^C * ^R -> _     ) (MonadWriter,    defaultof< ^R>)) x
+let inline listen m : ^R = ((^C or ^a or ^R) : (static member listen: ^C * ^a * ^R -> _) (MonadWriter, m, defaultof< ^R>))
+let inline pass   m : ^R = ((^C or ^a or ^R) : (static member pass  : ^C * ^a * ^R -> _) (MonadWriter, m, defaultof< ^R>))

@@ -12,7 +12,7 @@ type Monoid = Monoid with
     static member        mempty (Monoid, _:Ordering ) = EQ
     static member        mempty (Monoid, _:unit     ) = ()
 
-let inline mempty() : ^R = ((^C or ^R) : (static member mempty  : ^C * ^R -> _) (Monoid, Unchecked.defaultof< ^R>))
+let inline mempty() : ^R = ((^C or ^R) : (static member mempty  : ^C * ^R -> _) (Monoid, defaultof< ^R>))
 
 type Monoid with static member inline mempty  (Monoid, _: 'a*'b         ) =
                     (mempty(),mempty()                           ): 'a*'b

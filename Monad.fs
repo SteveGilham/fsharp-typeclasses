@@ -11,7 +11,7 @@ type MonadPlus = MonadPlus with
     static member mplus (MonadPlus, x:list<_>  , y) = List.append  x y
 
 
-let inline mzero () : ^R = ((^C or ^R) : (static member mzero : ^C * ^R -> _     ) (MonadPlus,    Unchecked.defaultof< ^R>))
+let inline mzero () : ^R = ((^C or ^R) : (static member mzero : ^C * ^R -> _     ) (MonadPlus,    defaultof< ^R>))
 let inline mplus (x:'a) (y:'a) : 'a = ((^C or ^a or ^R) : (static member mplus: ^C * ^a * ^R -> _) (MonadPlus, x, y))
 
 let inline msum x =

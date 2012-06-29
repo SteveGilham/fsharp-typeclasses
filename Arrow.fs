@@ -16,7 +16,7 @@ type Category = Category with
     static member        comp (Category,         f, g:_->_   ) =          g >>  f
     static member inline comp (Category, Kleisli f, Kleisli g) = Kleisli (g >=> f)
 
-let inline id'() : ^R = ((^C or       ^R) : (static member id : ^C * ^R      -> _) (Category, Unchecked.defaultof< ^R>))
+let inline id'() : ^R = ((^C or       ^R) : (static member id : ^C * ^R      -> _) (Category, defaultof< ^R>))
 let inline (<<<) f g =  ((^C or ^a or ^b) : (static member comp : ^C * ^a * ^b -> _) (Category, f, g))
 let inline (>>>) g f =  ((^C or ^a or ^b) : (static member comp : ^C * ^a * ^b -> _) (Category, f, g))
 
@@ -29,8 +29,8 @@ type Arrow = Arrow with
     static member inline first (Arrow, Kleisli f, _:Kleisli<_,_>) = Kleisli (fun (b,d) -> f b >>>= fun c -> return' (c,d))
 
 
-let inline arr   f : ^R = ((^C or ^a or ^R) : (static member arr   : ^C * ^a * ^R -> _) (Arrow,f,Unchecked.defaultof< ^R>))
-let inline first f : ^R = ((^C or ^a or ^R) : (static member first : ^C * ^a * ^R -> _) (Arrow,f,Unchecked.defaultof< ^R>))
+let inline arr   f : ^R = ((^C or ^a or ^R) : (static member arr   : ^C * ^a * ^R -> _) (Arrow,f,defaultof< ^R>))
+let inline first f : ^R = ((^C or ^a or ^R) : (static member first : ^C * ^a * ^R -> _) (Arrow,f,defaultof< ^R>))
 
 
 let inline second f = 
@@ -45,14 +45,14 @@ type ArrowChoice = ArrowChoice with
     static member inline acEither (ArrowChoice, (f,g)                , _:Either<_,_>->_) =          either f g
     static member inline acEither (ArrowChoice, (Kleisli f,Kleisli g), _:Kleisli<_,_>  ) = Kleisli (either f g)
 
-let inline (|||) f g : ^R = ((^C or ^a or ^R) : (static member acEither : ^C * ^a * ^R -> _) (ArrowChoice,(f,g),Unchecked.defaultof< ^R>))
+let inline (|||) f g : ^R = ((^C or ^a or ^R) : (static member acEither : ^C * ^a * ^R -> _) (ArrowChoice,(f,g),defaultof< ^R>))
 
 type ArrowChoice with
     static member inline acMerge (ArrowChoice, (f,g)                 , _:_->Either<_,_>) = (Left << f) ||| (Right << g)
     static member inline acMerge (ArrowChoice, (Kleisli f, Kleisli g), _:Kleisli<_,_>  ) =
         Kleisli (f >=> (return' <<< Left)) ||| Kleisli (g >=> (return' <<< Right))
 
-let inline (+++) f g : ^R = ((^C or ^a or ^R) : (static member acMerge  : ^C * ^a * ^R -> _) (ArrowChoice,(f,g),Unchecked.defaultof< ^R>))
+let inline (+++) f g : ^R = ((^C or ^a or ^R) : (static member acMerge  : ^C * ^a * ^R -> _) (ArrowChoice,(f,g),defaultof< ^R>))
 
 
 type ArrowChoice with
@@ -62,8 +62,8 @@ type ArrowChoice with
     static member inline acRight (ArrowChoice, f:_->_   ) = id          +++ f
     static member inline acRight (ArrowChoice, Kleisli f) = arr (id'()) +++ Kleisli f
 
-let inline left  f : ^R = ((^C or ^a or ^R) : (static member acLeft  : ^C * ^a * ^R -> _) (ArrowChoice, f, Unchecked.defaultof< ^R>))
-let inline right f : ^R = ((^C or ^a or ^R) : (static member acRight : ^C * ^a * ^R -> _) (ArrowChoice, f, Unchecked.defaultof< ^R>))
+let inline left  f : ^R = ((^C or ^a or ^R) : (static member acLeft  : ^C * ^a * ^R -> _) (ArrowChoice, f, defaultof< ^R>))
+let inline right f : ^R = ((^C or ^a or ^R) : (static member acRight : ^C * ^a * ^R -> _) (ArrowChoice, f, defaultof< ^R>))
 
 
 
@@ -71,4 +71,4 @@ type ArrowApply = ArrowApply with
     static member app (ArrowApply, _: ('a -> 'b) * 'a -> 'b            ) =          fun (f,x)          -> f x
     static member app (ArrowApply, _: Kleisli<(Kleisli<'a,'b> * 'a),'b>) = Kleisli (fun (Kleisli f, x) -> f x)
 
-let inline app() : ^R = ((^C or ^R) : (static member app : ^C * ^R -> _) (ArrowApply, Unchecked.defaultof< ^R>))
+let inline app() : ^R = ((^C or ^R) : (static member app : ^C * ^R -> _) (ArrowApply, defaultof< ^R>))

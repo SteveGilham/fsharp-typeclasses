@@ -20,7 +20,7 @@ type Applicative = Applicative with
     static member ap (Applicative, f:_ -> _      , g: _ -> _     ) = fun x ->   f x (g x)
     static member ap (Applicative, f:Either<'e,_>, x:Either<'e,_>) = Applicative.ap f x
 
-let inline pure' x : ^R = ((^C or ^R) : (static member pure': ^C * ^R -> _) (Applicative, Unchecked.defaultof< ^R>)) x
+let inline pure' x : ^R = ((^C or ^R) : (static member pure': ^C * ^R -> _) (Applicative, defaultof< ^R>)) x
 let inline (<*>) x y = ((^C or ^a or ^b) : (static member ap: ^C * ^a * ^b -> _) (Applicative, x, y))
 
 
@@ -31,7 +31,7 @@ type Alternative = Alternative with
     static member append (Alternative, x:option<_>, y) = match x with | None -> y | xs -> xs
     static member append (Alternative, x:list<_>  , y) = List.append  x y
 
-let inline empty() : ^R = ((^C or ^R) : (static member empty: ^C * ^R -> _) (Alternative, Unchecked.defaultof< ^R>))
+let inline empty() : ^R = ((^C or ^R) : (static member empty: ^C * ^R -> _) (Alternative, defaultof< ^R>))
 let inline (<|>) (x:^a) (y:^a) : ^a = ((^C or ^a) : (static member append: ^C * ^a * ^a -> _) (Alternative, x, y))
 
 
