@@ -1,5 +1,7 @@
 ﻿module Prelude
 
+let inline defaultof< ^T> = Unchecked.defaultof< ^T>
+
 let flip f x y = f y x
 let const' k _ = k
 let maybe  n f = function | None -> n | Some x -> f x
@@ -56,7 +58,7 @@ type Return = Return with
     static member (?<-) (_, _Monad:Return, _: _ -> 'a     ) = fun (x:'a) -> const' x
     static member (?<-) (_, _Monad:Return, _:Either<'e,'a>) = fun (x:'a) -> Right x : Either<'e,'a>
 
-let inline return' x : ^R = (() ? (Return) <- Unchecked.defaultof< ^R> ) x
+let inline return' x : ^R = (() ? (Return) <- defaultof< ^R> ) x
 
 type Bind = Bind with
     static member (?<-) (x:option<_>   , _Monad:Bind,_:option<'b>   ) = fun (f:_->option<'b>  ) -> Option.bind  f x
@@ -67,8 +69,8 @@ type Bind = Bind with
                                                                                                    | Left  l -> Left l
                                                                                                    | Right r -> k r
 
-let inline (>>=) x f : ^R = (x ? (Bind) <- Unchecked.defaultof< ^R> ) f
-let inline (=<<) f x : ^R = (x ? (Bind) <- Unchecked.defaultof< ^R> ) f
+let inline (>>=) x f : ^R = (x ? (Bind) <- defaultof< ^R> ) f
+let inline (=<<) f x : ^R = (x ? (Bind) <- defaultof< ^R> ) f
 
 // Do notation ------------------------------------------------------------
 

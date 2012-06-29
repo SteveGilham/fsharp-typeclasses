@@ -11,7 +11,7 @@ type Pure = Pure with
     static member (?<-) (_, _Applicative:Pure, _: _ -> 'a    ) = const'
     static member (?<-) (_, _Applicative:Pure, _:Either<'e,_>) = fun (x:'a) -> Pure.Pure.Base x :Either<'e,_>
 
-let inline pure' x : ^R = (() ? (Pure) <- Unchecked.defaultof< ^R> ) x
+let inline pure' x : ^R = (() ? (Pure) <- defaultof< ^R> ) x
 
 
 type Ap = Ap with
@@ -29,7 +29,7 @@ type Empty = Empty with
     static member (?<-) (_, _Alternative:Empty, _:'a option) = None
     static member (?<-) (_, _Alternative:Empty, _:'a list  ) = []
 
-let inline empty() : ^R = () ? (Empty) <- Unchecked.defaultof< ^R>
+let inline empty() : ^R = () ? (Empty) <- defaultof< ^R>
 
 
 type Append = Append with    
