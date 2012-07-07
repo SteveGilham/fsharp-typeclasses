@@ -1,7 +1,4 @@
-﻿// For F# 3.0 Preview use #nowarn "1173"
-
-
-#load "Prelude.fs"
+﻿#load "Prelude.fs"
 open Prelude
 
 
@@ -262,7 +259,7 @@ let tick :State<_,_> = do'{
     return n}
 
 let plusOne n = execState tick n
-let plus  n x = execState (sequence <| List.replicate n tick) x
+let plus  n x = execState (sequence <| replicate n tick) x
 
 
 #load "Writer.fs"

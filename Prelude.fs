@@ -17,6 +17,20 @@ let inline compare' x y =
 type Either<'a,'b> = Left of 'a | Right of 'b
 let either f g = function Left x -> f x | Right y -> g y
 
+
+// List -------------------------------------------------------------------
+
+let map, replicate, filter, head, tail = List.map, List.replicate, List.filter, List.head, List.tail
+let last x = List.length x - 1 |> fun e -> x.[e]
+let init x = List.init (List.length x-1) (fun e -> x.[e])
+let length,reverse = List.length,List.rev
+
+let foldr f z x = List.foldBack f x z
+let rec foldr1 f = function [x] -> x | (x::xs) -> f x (foldr1 f xs) | [] -> failwith "EmptyList foldr1"
+let foldl = List.fold
+let rec foldl1 f = function (x::xs) -> foldl f x xs | [] -> failwith "EmptyList foldl1"
+
+
 // IO ---------------------------------------------------------------------
 
 type IO<'a> = IO of (unit->'a)
