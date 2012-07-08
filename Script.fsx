@@ -179,14 +179,14 @@ module FoldableTree =
         | Node of (Tree<'a>) * 'a * (Tree<'a>)
 
         // add instance for Foldable class
-        static member inline foldMap   (Foldable, t:Tree<_> ) =
+        static member inline foldMap   (_:Foldable, t:Tree<_> ) =
             let rec _foldMap x f =
                 match x with
                 | Empty        -> mempty()
                 | Leaf n       -> f n
                 | Node (l,k,r) -> mappend (_foldMap l f) (mappend (f k) (_foldMap r f) )
             _foldMap t
-        static member inline foldr (Foldable, x:Tree<_>  ) = fun (f,z) -> Foldable.foldr f z x
+        static member inline foldr (_:Foldable, x:Tree<_>  ) = fun (f,z) -> Foldable.foldr f z x
     
     let myTree = Node (Node (Leaf(1), 6, Leaf(3)), 2 , Leaf(9))
     let resSum21      = foldMap Sum     myTree
