@@ -3,24 +3,26 @@
 open Prelude
 open Control.Monad.Base
 
+type Applicative = Applicative with
+    static member inline pure' x = return' x
+    static member inline ap  f x = ap f x
+
 type Pure = Pure with
-    member inline this.Base                                  x = return' x
-    static member (?<-) (_, _Applicative:Pure, _:'a option   ) = fun (x:'a) -> Pure.Pure.Base x :'a option
-    static member (?<-) (_, _Applicative:Pure, _:'a list     ) = fun (x:'a) -> Pure.Pure.Base x :'a list
-    static member (?<-) (_, _Applicative:Pure, _:'a IO       ) = fun (x:'a) -> Pure.Pure.Base x :'a IO
+    static member (?<-) (_, _Applicative:Pure, _:'a option   ) = fun (x:'a) -> Applicative.pure' x :'a option
+    static member (?<-) (_, _Applicative:Pure, _:'a list     ) = fun (x:'a) -> Applicative.pure' x :'a list
+    static member (?<-) (_, _Applicative:Pure, _:'a IO       ) = fun (x:'a) -> Applicative.pure' x :'a IO
     static member (?<-) (_, _Applicative:Pure, _: _ -> 'a    ) = const'
-    static member (?<-) (_, _Applicative:Pure, _:Either<'e,_>) = fun (x:'a) -> Pure.Pure.Base x :Either<'e,_>
+    static member (?<-) (_, _Applicative:Pure, _:Either<'e,_>) = fun (x:'a) -> Applicative.pure' x :Either<'e,_>
 
 let inline pure' x : ^R = (() ? (Pure) <- defaultof< ^R> ) x
 
 
 type Ap = Ap with
-    member inline this.Base                                     f x = ap f x
-    static member (?<-) (f:option<_>, _Applicative:Ap, x:option<_>) = Ap.Ap.Base f x
-    static member (?<-) (f:list<_>  , _Applicative:Ap, x:list<_>  ) = Ap.Ap.Base f x
-    static member (?<-) (f:IO<_>    , _Applicative:Ap, x          ) = Ap.Ap.Base f x
-    static member (?<-) (f:_ -> _   , _Applicative:Ap, g: _ -> _  ) = fun x ->   f x (g x)
-    static member (?<-) (f:Either<'e,_>, _Applicative:Ap, x:Either<'e,_>) = Ap.Ap.Base f x
+    static member (?<-) (f:option<_>, _Applicative:Ap, x:option<_>) = Applicative.ap f x
+    static member (?<-) (f:list<_>  , _Applicative:Ap, x:list<_>  ) = Applicative.ap f x
+    static member (?<-) (f:IO<_>    , _Applicative:Ap, x          ) = Applicative.ap f x
+    static member (?<-) (f:_ -> _   , _Applicative:Ap, g: _ -> _  ) = fun x ->  f x (g x)
+    static member (?<-) (f:Either<'e,_>, _Applicative:Ap, x:Either<'e,_>) = Applicative.ap f x
 
 let inline (<*>) x y = x ? (Ap) <- y
 
