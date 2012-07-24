@@ -67,7 +67,6 @@ type Endo<'a> = Endo of ('a -> 'a) with
 
 let appEndo (Endo f) = f
 
-open LanguagePrimitives
 
 type All = All of bool with
     static member (?<-) (_    , _Monoid:Mempty , _:All  ) = All true
@@ -78,9 +77,9 @@ type Any = Any of bool with
     static member (?<-) (Any x, _Monoid:Mappend,   Any y) = Any (x || y)
 
 type Sum<'a> = Sum of 'a with
-    static member inline (?<-) (_         , _Monoid:Mempty , _:Sum<'n>  ) = Sum GenericZero :Sum<'n>
-    static member inline (?<-) (Sum (x:'n), _Monoid:Mappend,   Sum(y:'n)) = Sum (x + y)     :Sum<'n>
+    static member inline (?<-) (_         , _Monoid:Mempty , _:Sum<'n>  ) = Sum 0G     :Sum<'n>
+    static member inline (?<-) (Sum (x:'n), _Monoid:Mappend,   Sum(y:'n)) = Sum (x + y):Sum<'n>
 
 type Product<'a> = Product of 'a with
-    static member inline (?<-) (_             , _Monoid:Mempty , _:Product<'n>  ) = Product GenericOne :Product<'n>
-    static member inline (?<-) (Product (x:'n), _Monoid:Mappend,   Product(y:'n)) = Product (x * y)    :Product<'n>
+    static member inline (?<-) (_             , _Monoid:Mempty , _:Product<'n>  ) = Product 1G     :Product<'n>
+    static member inline (?<-) (Product (x:'n), _Monoid:Mappend,   Product(y:'n)) = Product (x * y):Product<'n>
