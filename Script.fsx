@@ -2,6 +2,14 @@
 open Prelude
 
 
+// Numerics
+
+let res5_55:Integer * _ = properFraction 5.55M
+let res111_20 = toRational 5.55
+let res4_3    = toRational (12 % 9)
+let res17_1   = toRational 17uy
+
+
 // return
 
 let resSome2 :option<_> = return' 2
@@ -75,7 +83,7 @@ let emptyLst:list<int> = mempty()
 let zeroInt:Sum<int>   = mempty()
 let res10 = mappend (mempty()) (Sum 10)
 let res6  = mconcat <| fmap Sum [0.4; 5.6]
-let res8  = mconcat [mempty(); Sum 2; Sum 6]
+let res8:Sum<Integer>  = mconcat [mempty(); Sum 2G; Sum 6G]
 let res8n4 = [mempty(); [8;4]]
 let res15 = mappend (Product 15) (mempty()) 
 let resTrue = mconcat [mempty(); Any true]
@@ -86,13 +94,13 @@ let resLT = mconcat [mempty(); LT ; EQ ;GT]
 let res9823 = mconcat (fmap Dual [mempty();"3";"2";"8";"9"])
 let resBA = mappend (Dual "A" ) (Dual "B" )
 let resEl00:list<int>*Sum<float> = mempty()
-let resS3P20     = mappend (Sum 1,Product 5.0) (Sum 2,Product 4.0)
+let resS3P20     = mappend (Sum 1G,Product 5.0) (Sum 2,Product 4G)
 let res230       = mappend (mempty(),mempty()) ([2],[3.0])
 let res243       = mappend  ([2;4],[3]) (mempty())
 let res23        = mappend (mempty()) ([2],"3")
 let resLtDualGt  = mappend  (LT,Dual GT) (mempty())
 let res230hiSum2 = mappend (mempty(), mempty(), Sum 2) ([2], ([3.0], "hi"), mempty())
-let res230hiS4P3 = mappend (mempty(), mempty()       ) ([2], ([3.0], "hi", Sum 4, Product 3))
+let res230hiS4P3 = mappend (mempty(), mempty()       ) ([2], ([3.0], "hi", Sum 4, Product (6 % 2)))
 let tuple5 :string*(Any*string)*(All*All*All)*Sum<int>*string = mempty()
 
 // Control Monad
