@@ -18,7 +18,208 @@ type Either<'a,'b> = Left of 'a | Right of 'b
 let either f g = function Left x -> f x | Right y -> g y
 
 
-// List -------------------------------------------------------------------
+// Num class --------------------------------------------------------------
+
+open System.Numerics
+type Integer = bigint
+
+type FromInteger = FromInteger with
+    static member        (?<-) (_, _Num:FromInteger, _:sbyte     ) = fun (x:Integer) -> sbyte           x
+    static member        (?<-) (_, _Num:FromInteger, _:int16     ) = fun (x:Integer) -> int16           x
+    static member        (?<-) (_, _Num:FromInteger, _:int32     ) = fun (x:Integer) -> int             x
+    static member        (?<-) (_, _Num:FromInteger, _:int64     ) = fun (x:Integer) -> int64           x
+    static member        (?<-) (_, _Num:FromInteger, _:nativeint ) = fun (x:Integer) -> nativeint  (int x)
+    static member        (?<-) (_, _Num:FromInteger, _:byte      ) = fun (x:Integer) -> byte            x
+    static member        (?<-) (_, _Num:FromInteger, _:uint16    ) = fun (x:Integer) -> uint16          x
+    static member        (?<-) (_, _Num:FromInteger, _:uint32    ) = fun (x:Integer) -> uint32          x
+    static member        (?<-) (_, _Num:FromInteger, _:uint64    ) = fun (x:Integer) -> uint64          x
+    static member        (?<-) (_, _Num:FromInteger, _:unativeint) = fun (x:Integer) -> unativeint (int x)
+    static member        (?<-) (_, _Num:FromInteger, _:bigint    ) = fun (x:Integer) ->                 x
+    static member        (?<-) (_, _Num:FromInteger, _:float     ) = fun (x:Integer) -> float           x
+    static member        (?<-) (_, _Num:FromInteger, _:float32   ) = fun (x:Integer) -> float32         x    
+    static member        (?<-) (_, _Num:FromInteger, _:decimal   ) = fun (x:Integer) -> decimal         x
+    static member        (?<-) (_, _Num:FromInteger, _:Complex   ) = fun (x:Integer) -> Complex (float  x, 0.0)
+
+let inline fromInteger (x:Integer) :'Num = (() ? (FromInteger) <- defaultof<'Num>) x
+
+type Abs = Abs with
+    static member inline (?<-) (_,      Abs, _:^t when ^t: null and ^t: struct) = id
+    static member inline (?<-) (_, _Num:Abs, x:^t        ) = abs x
+    static member        (?<-) (_, _Num:Abs, x:byte      ) =     x
+    static member        (?<-) (_, _Num:Abs, x:uint16    ) =     x
+    static member        (?<-) (_, _Num:Abs, x:uint32    ) =     x
+    static member        (?<-) (_, _Num:Abs, x:uint64    ) =     x
+    static member        (?<-) (_, _Num:Abs, x:unativeint) =     x
+    static member        (?<-) (_, _Num:Abs, x:Complex   ) = Complex(x.Magnitude, 0.0)
+
+let inline abs (x:'Num) :'Num = () ? (Abs) <- x
+
+type Signum = Signum with
+    static member inline (?<-) (_,      Signum, _:^t when ^t: null and ^t: struct) = id
+    static member inline (?<-) (_, _Num:Signum, x:^t        ) = fromInteger (bigint (sign x)) :^t
+    static member        (?<-) (_, _Num:Signum, x:byte      ) = if x = 0uy then 0uy else 1uy
+    static member        (?<-) (_, _Num:Signum, x:uint16    ) = if x = 0us then 0us else 1us
+    static member        (?<-) (_, _Num:Signum, x:uint32    ) = if x = 0u  then 0u  else 1u
+    static member        (?<-) (_, _Num:Signum, x:uint64    ) = if x = 0UL then 0UL else 1UL
+    static member        (?<-) (_, _Num:Signum, x:unativeint) = if x = 0un then 0un else 1un
+    static member        (?<-) (_, _Num:Signum, x:Complex   ) =
+        if x.Magnitude = 0.0 then Complex.Zero
+        else Complex(x.Real / x.Magnitude, x.Imaginary / x.Magnitude)
+   
+let inline signum (x:'Num) :'Num = () ? (Signum) <- x
+
+let inline (+) (a:'Num) (b:'Num) :'Num = a + b
+let inline (-) (a:'Num) (b:'Num) :'Num = a - b
+let inline (*) (a:'Num) (b:'Num) :'Num = a * b
+
+type Negate = Negate with
+    static member inline (?<-) (_,      Negate, _:^t when ^t: null and ^t: struct) = id
+    static member inline (?<-) (_, _Num:Negate, x:^t        ) = -x
+    static member        (?<-) (_, _Num:Negate, x:byte      ) = 0uy - x
+    static member        (?<-) (_, _Num:Negate, x:uint16    ) = 0us - x
+    static member        (?<-) (_, _Num:Negate, x:uint32    ) = 0u  - x
+    static member        (?<-) (_, _Num:Negate, x:uint64    ) = 0UL - x
+    static member        (?<-) (_, _Num:Negate, x:unativeint) = 0un - x
+   
+let inline negate (x:'Num) :'Num = () ? (Negate) <- x
+let inline (~-)   (x:'Num) :'Num = () ? (Negate) <- x
+
+
+// Integral class ---------------------------------------------------------
+
+type ToInteger = ToInteger with
+    static member        (?<-) (_, _Integral:ToInteger, x:sbyte     ) = bigint (int x)
+    static member        (?<-) (_, _Integral:ToInteger, x:int16     ) = bigint (int x)
+    static member        (?<-) (_, _Integral:ToInteger, x:int32     ) = bigint      x
+    static member        (?<-) (_, _Integral:ToInteger, x:int64     ) = bigint      x
+    static member        (?<-) (_, _Integral:ToInteger, x:nativeint ) = bigint (int x)
+    static member        (?<-) (_, _Integral:ToInteger, x:byte      ) = bigint (int x)
+    static member        (?<-) (_, _Integral:ToInteger, x:uint16    ) = bigint (int x)
+    static member        (?<-) (_, _Integral:ToInteger, x:uint32    ) = bigint      x
+    static member        (?<-) (_, _Integral:ToInteger, x:uint64    ) = bigint      x
+    static member        (?<-) (_, _Integral:ToInteger, x:unativeint) = bigint (int x)
+    static member        (?<-) (_, _Integral:ToInteger, x:bigint    ) =             x
+
+let inline toInteger (x:'Integral) :Integer = () ? (ToInteger) <- x
+
+let inline fromIntegral (x:'Integral) :'Num = (fromInteger << toInteger) x
+
+module NumericLiteralG =
+    let inline FromZero() = fromIntegral 0
+    let inline FromOne () = fromIntegral 1
+    let inline FromInt32  (i:int   ) = fromIntegral i
+    let inline FromInt64  (i:int64 ) = fromIntegral i
+    let inline FromString (i:string) = fromInteger <| BigInteger.Parse i
+
+let inline whenIntegral a = let _ = if false then toInteger a else 0I in ()
+
+let inline quot (a:'Integral) (b:'Integral) :'Integral = whenIntegral a; a / b
+let inline rem  (a:'Integral) (b:'Integral) :'Integral = whenIntegral a; a % b
+let inline quotRem a b :'Integral * 'Integral = (quot a b, rem a b)
+
+let inline div (a:'Integral) b :'Integral =
+    whenIntegral a
+    let (a,b) = if b < 0G then (-a,-b) else (a,b)
+    (if a < 0G then (a - b + 1G) else a) / b
+
+let inline mod'   a b :'Integral = whenIntegral a; ((a % b) + b) % b  
+let inline divMod a b :'Integral * 'Integral = (div a b, mod' a b)
+
+
+// Numeric Functions ------------------------------------------------------
+
+let inline gcd x y :'Integral =
+    let zero = 0G
+    let rec gcd' a = function
+        | b when b = zero -> a
+        | b -> gcd' b (rem a b)
+    match(x,y) with
+    | t when t = (zero,zero) -> failwith "Prelude.gcd: gcd 0 0 is undefined"
+    | _                      -> gcd' (abs x) (abs y)
+
+
+// Ratio ------------------------------------------------------------------
+
+type Ratio<'Integral> = Ratio of 'Integral * 'Integral with
+    override this.ToString() =
+        let (Ratio(n,d)) = this
+        (n.ToString()) + " % " + (d.ToString())
+
+type Rational = Ratio<Integer>
+
+let inline (%) (a:'Integral) (b:'Integral) :Ratio<'Integral> =
+    whenIntegral a
+    let zero = 0G
+    if b = zero then failwith "Ratio.%: zero denominator"
+    let (a,b) = if b < zero then (negate a,negate b) else (a,b)
+    let gcd = gcd a b
+    Ratio (quot a gcd, quot b gcd)
+
+let numerator   (Ratio(x,_)) = x
+let denominator (Ratio(_,x)) = x
+
+type Ratio<'Integral> with
+    static member inline (/) (Ratio(a,b),Ratio(c,d)) = (a * d) % (b * c)
+
+    static member inline (+) (Ratio(a,b),Ratio(c,d)) = (a * d + c * b) % (b * d)
+    static member inline (-) (Ratio(a,b),Ratio(c,d)) = (a * d - c * b) % (b * d)
+    static member inline (*) (Ratio(a,b),Ratio(c,d)) = (a * c) % (b * d)   
+
+type Abs         with static member inline (?<-) (_, _Num:Abs        ,   Ratio(a,b)) = (abs    a) % b
+type Signum      with static member inline (?<-) (_, _Num:Signum     ,   Ratio(a,b)) = (signum a) % 1G
+type FromInteger with static member inline (?<-) (_, _Num:FromInteger, _:Ratio< ^r>) = fun (x:Integer) -> fromInteger x % 1G
+type Negate      with static member inline (?<-) (_, _Num:Negate     ,   Ratio(a,b)) = -a % b
+
+
+// Fractional class -------------------------------------------------------
+
+type FromRational = FromRational with
+    static member        (?<-) (_, _Fractional:FromRational, _:float     ) = fun (Ratio(a,b):Rational) -> float   a / float   b
+    static member        (?<-) (_, _Fractional:FromRational, _:float32   ) = fun (Ratio(a,b):Rational) -> float32 a / float32 b    
+    static member        (?<-) (_, _Fractional:FromRational, _:decimal   ) = fun (Ratio(a,b):Rational) -> decimal a / decimal b
+    static member inline (?<-) (_, _Fractional:FromRational, _:Ratio< ^a>) = fun (Ratio(a,b):Rational) -> fromIntegral a % fromIntegral b
+    static member        (?<-) (_, _Fractional:FromRational, _:Complex   ) = fun (Ratio(a,b):Rational) -> Complex(float a / float b, 0.0)
+
+let inline fromRational (x:Rational) :'Fractional = (() ?  (FromRational) <- defaultof<'Fractional>) x
+
+let inline whenFractional a = let _ = if false then fromRational (1I % 1I) else a in ()
+
+let inline (/) (a:'Fractional) (b:'Fractional) :'Fractional = whenFractional a; a / b
+
+let inline recip x :'Fractional = 1G / x
+
+
+// RealFrac class ---------------------------------------------------------
+
+type ProperFraction = ProperFraction with
+    static member        (?<-) (_, _RealFrac:ProperFraction, x:float     ) = let t = truncate x in (bigint (decimal t), x - t)
+    static member        (?<-) (_, _RealFrac:ProperFraction, x:float32   ) = let t = truncate x in (bigint (decimal t), x - t)
+    static member        (?<-) (_, _RealFrac:ProperFraction, x:decimal   ) = let t = truncate x in (bigint          t , x - t)
+    static member inline (?<-) (_, _RealFrac:ProperFraction, (Ratio(a,b):Ratio< ^a>)) =
+        let (i,f) = quotRem a b
+        (i, f % b)
+
+let inline properFraction (x:'RealFrac) : 'Integral * 'RealFrac =
+    let (a, b:'RealFrac) = () ?  (ProperFraction) <- x
+    (fromIntegral a, b)
+
+let inline truncate (x:'RealFrac) :'Integral = fst <| properFraction x
+
+
+// Real class -------------------------------------------------------------
+
+type ToRational = ToRational with
+    static member inline (?<-) (_, _Real:ToRational, Ratio(a,b)) = toInteger a % toInteger b :Rational
+    static member inline (?<-) (_, _Real:ToRational, x:^t      ) =
+        whenFractional x
+        let (i:Integer,d) = properFraction x
+        (i % 1I) + (truncate (decimal d * 1000000000000000000000000000M) % 1000000000000000000000000000I) :Rational
+    static member inline (?<-) (_, _Real:ToRational, x:^t      ) = (toInteger x) % 1I
+
+let inline toRational (x:'Real) :Rational = () ?  (ToRational) <- x
+
+
+// List functions ---------------------------------------------------------
 
 let map, replicate, filter, head, tail = List.map, List.replicate, List.filter, List.head, List.tail
 let last x = List.length x - 1 |> fun e -> x.[e]
@@ -47,7 +248,7 @@ let print    x = IO(fun() -> printfn "%A" x)
 
 type Fmap = Fmap with
     static member (?<-) (_, _Functor:Fmap, x:option<_>    ) = fun f -> Option.map  f x
-    static member (?<-) (_, _Functor:Fmap, x:list<_>      ) = fun f -> List.map    f x    
+    static member (?<-) (_, _Functor:Fmap, x:list<_>      ) = fun f -> List.map    f x  
     static member (?<-) (_, _Functor:Fmap, x:IO<_>        ) = fun f -> primbindIO  x (primretIO << f)
     static member (?<-) (_, _Functor:Fmap, g:_->_         ) = (>>) g
     static member (?<-) (_, _Functor:Fmap, e:Either<'a,'b>) = fun f ->
@@ -57,7 +258,7 @@ type Fmap = Fmap with
     static member (?<-) (_, _Functor:Fmap, x:array<_>     ) = fun f -> Array.map   f x
     static member (?<-) (_, _Functor:Fmap, x:_ [,]        ) = fun f -> Array2D.map f x
     static member (?<-) (_, _Functor:Fmap, x:_ [,,]       ) = fun f -> Array3D.map f x
-    static member (?<-) (_, _Functor:Fmap, x:_ [,,,]      ) = fun f -> 
+    static member (?<-) (_, _Functor:Fmap, x:_ [,,,]      ) = fun f ->
         Array4D.init (x.GetLength 0) (x.GetLength 1) (x.GetLength 2) (x.GetLength 3) (fun a b c d -> f x.[a,b,c,d])
 
 let inline fmap f x = (() ? (Fmap) <- x) f
@@ -85,6 +286,7 @@ type Bind = Bind with
 
 let inline (>>=) x f : ^R = (x ? (Bind) <- defaultof< ^R> ) f
 let inline (=<<) f x : ^R = (x ? (Bind) <- defaultof< ^R> ) f
+
 
 // Do notation ------------------------------------------------------------
 
