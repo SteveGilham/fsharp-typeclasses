@@ -9,6 +9,14 @@ let res111_20 = toRational 5.55
 let res4_3    = toRational (12 % 9)
 let res17_1   = toRational 17uy
 
+let inline quadratic a b c =
+    let root1 = ( -b + sqrt (  b **^ 2 - 4G * a * c) )  / (2G * a)
+    let root2 = ( -b - sqrt (  b **^ 2 - 4G * a * c) )  / (2G * a)
+    (root1,root2)
+
+let res30_15  = quadratic 2.0  -3G -9G
+let res30_15f = quadratic 2.0f -3G -9G
+let resCmplx:System.Numerics.Complex * _ = quadratic 2G -3G 9G
 
 // return
 
