@@ -140,45 +140,48 @@ let inline gcd x y :'Integral =
 
 // Ratio ------------------------------------------------------------------
 
-type Ratio<'Integral> = Ratio of 'Integral * 'Integral with
-    override this.ToString() =
-        let (Ratio(n,d)) = this
-        (n.ToString()) + " % " + (d.ToString())
+module Ratio = 
+    type Ratio<'Integral> = private Ratio of 'Integral * 'Integral with
+        override this.ToString() =
+            let (Ratio(n,d)) = this
+            n.ToString() + " % " + d.ToString()
 
+    let inline (%) (a:'Integral) (b:'Integral) :Ratio<'Integral> =
+        whenIntegral a
+        let zero = 0G
+        if b = zero then failwith "Ratio.%: zero denominator"
+        let (a,b) = if b < zero then (negate a,negate b) else (a,b)
+        let gcd = gcd a b
+        Ratio (quot a gcd, quot b gcd)
+
+    let numerator   (Ratio(x,_)) = x
+    let denominator (Ratio(_,x)) = x
+
+    type Ratio<'Integral> with
+        static member inline (/) (Ratio(a,b),Ratio(c,d)) = (a * d) % (b * c)
+
+        static member inline (+) (Ratio(a,b),Ratio(c,d)) = (a * d + c * b) % (b * d)
+        static member inline (-) (Ratio(a,b),Ratio(c,d)) = (a * d - c * b) % (b * d)
+        static member inline (*) (Ratio(a,b),Ratio(c,d)) = (a * c) % (b * d)   
+
+open Ratio
 type Rational = Ratio<Integer>
+let inline (%) (a:'Integral) (b:'Integral) :Ratio<'Integral> = a % b
 
-let inline (%) (a:'Integral) (b:'Integral) :Ratio<'Integral> =
-    whenIntegral a
-    let zero = 0G
-    if b = zero then failwith "Ratio.%: zero denominator"
-    let (a,b) = if b < zero then (negate a,negate b) else (a,b)
-    let gcd = gcd a b
-    Ratio (quot a gcd, quot b gcd)
-
-let numerator   (Ratio(x,_)) = x
-let denominator (Ratio(_,x)) = x
-
-type Ratio<'Integral> with
-    static member inline (/) (Ratio(a,b),Ratio(c,d)) = (a * d) % (b * c)
-
-    static member inline (+) (Ratio(a,b),Ratio(c,d)) = (a * d + c * b) % (b * d)
-    static member inline (-) (Ratio(a,b),Ratio(c,d)) = (a * d - c * b) % (b * d)
-    static member inline (*) (Ratio(a,b),Ratio(c,d)) = (a * c) % (b * d)   
-
-type Abs         with static member inline (?<-) (_, _Num:Abs        ,   Ratio(a,b)) = (abs    a) % b
-type Signum      with static member inline (?<-) (_, _Num:Signum     ,   Ratio(a,b)) = (signum a) % 1G
-type FromInteger with static member inline (?<-) (_, _Num:FromInteger, _:Ratio< ^r>) = fun (x:Integer) -> fromInteger x % 1G
-type Negate      with static member inline (?<-) (_, _Num:Negate     ,   Ratio(a,b)) = -a % b
+type Abs         with static member inline (?<-) (_, _Num:Abs        , r:Ratio<_>) = (abs    (numerator r)) % (denominator r)
+type Signum      with static member inline (?<-) (_, _Num:Signum     , r:Ratio<_>) = (signum (numerator r)) % 1G
+type FromInteger with static member inline (?<-) (_, _Num:FromInteger, _:Ratio<_>) = fun (x:Integer) -> fromInteger x % 1G
+type Negate      with static member inline (?<-) (_, _Num:Negate     , r:Ratio<_>) = -(numerator r) % (denominator r)
 
 
 // Fractional class -------------------------------------------------------
 
 type FromRational = FromRational with
-    static member        (?<-) (_, _Fractional:FromRational, _:float     ) = fun (Ratio(a,b):Rational) -> float   a / float   b
-    static member        (?<-) (_, _Fractional:FromRational, _:float32   ) = fun (Ratio(a,b):Rational) -> float32 a / float32 b    
-    static member        (?<-) (_, _Fractional:FromRational, _:decimal   ) = fun (Ratio(a,b):Rational) -> decimal a / decimal b
-    static member inline (?<-) (_, _Fractional:FromRational, _:Ratio< ^a>) = fun (Ratio(a,b):Rational) -> fromIntegral a % fromIntegral b
-    static member        (?<-) (_, _Fractional:FromRational, _:Complex   ) = fun (Ratio(a,b):Rational) -> Complex(float a / float b, 0.0)
+    static member        (?<-) (_, _Fractional:FromRational, _:float   ) = fun (r:Rational) -> float   (numerator r) / float   (denominator r)
+    static member        (?<-) (_, _Fractional:FromRational, _:float32 ) = fun (r:Rational) -> float32 (numerator r) / float32 (denominator r)    
+    static member        (?<-) (_, _Fractional:FromRational, _:decimal ) = fun (r:Rational) -> decimal (numerator r) / decimal (denominator r)
+    static member inline (?<-) (_, _Fractional:FromRational, _:Ratio<_>) = fun (r:Rational) -> fromIntegral  (numerator r) % fromIntegral (denominator r)
+    static member        (?<-) (_, _Fractional:FromRational, _:Complex ) = fun (r:Rational) -> Complex(float (numerator r) / float (denominator r), 0.0)
 
 let inline fromRational (x:Rational) :'Fractional = (() ?  (FromRational) <- defaultof<'Fractional>) x
 
@@ -202,10 +205,11 @@ let inline ( **^^ ) (x:'Fractional) (n:'Integral) = if n >= 0G then x**^n else r
 // RealFrac class ---------------------------------------------------------
 
 type ProperFraction = ProperFraction with
-    static member        (?<-) (_, _RealFrac:ProperFraction, x:float     ) = let t = truncate x in (bigint (decimal t), x - t)
-    static member        (?<-) (_, _RealFrac:ProperFraction, x:float32   ) = let t = truncate x in (bigint (decimal t), x - t)
-    static member        (?<-) (_, _RealFrac:ProperFraction, x:decimal   ) = let t = truncate x in (bigint          t , x - t)
-    static member inline (?<-) (_, _RealFrac:ProperFraction, (Ratio(a,b):Ratio< ^a>)) =
+    static member        (?<-) (_, _RealFrac:ProperFraction, x:float   ) = let t = truncate x in (bigint (decimal t), x - t)
+    static member        (?<-) (_, _RealFrac:ProperFraction, x:float32 ) = let t = truncate x in (bigint (decimal t), x - t)
+    static member        (?<-) (_, _RealFrac:ProperFraction, x:decimal ) = let t = truncate x in (bigint          t , x - t)
+    static member inline (?<-) (_, _RealFrac:ProperFraction, r:Ratio<_>) =
+        let (a,b) = (numerator r, denominator r)
         let (i,f) = quotRem a b
         (i, f % b)
 
@@ -219,7 +223,7 @@ let inline truncate (x:'RealFrac) :'Integral = fst <| properFraction x
 // Real class -------------------------------------------------------------
 
 type ToRational = ToRational with
-    static member inline (?<-) (_, _Real:ToRational, Ratio(a,b)) = toInteger a % toInteger b :Rational
+    static member inline (?<-) (_, _Real:ToRational, r:Ratio<_>) = toInteger (numerator r) % toInteger (denominator r) :Rational
     static member inline (?<-) (_, _Real:ToRational, x:^t      ) =
         whenFractional x
         let (i:Integer,d) = properFraction x
