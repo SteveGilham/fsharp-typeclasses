@@ -189,6 +189,16 @@ let inline (/) (a:'Fractional) (b:'Fractional) :'Fractional = whenFractional a; 
 let inline recip x :'Fractional = 1G / x
 
 
+// Exp functions ----------------------------------------------------------
+
+let inline ( **^ ) (x:'Num) (n:'Integral)  = 
+    whenIntegral n
+    let rec f a b n = if n = 0G then a else f (b * a) b (n - 1G)
+    if (n < 0G) then failwith "Negative exponent" else f 1G x n
+
+let inline ( **^^ ) (x:'Fractional) (n:'Integral) = if n >= 0G then x**^n else recip (x**^(negate n))
+
+
 // RealFrac class ---------------------------------------------------------
 
 type ProperFraction = ProperFraction with
@@ -217,6 +227,25 @@ type ToRational = ToRational with
     static member inline (?<-) (_, _Real:ToRational, x:^t      ) = (toInteger x) % 1I
 
 let inline toRational (x:'Real) :Rational = () ?  (ToRational) <- x
+
+
+// Floating class ---------------------------------------------------------
+
+type Pi = Pi with
+    static member (?<-) (_, Pi, _:float32) = 3.14159274f
+    static member (?<-) (_, Pi, _:float  ) = System.Math.PI
+    static member (?<-) (_, Pi, _:Complex) = Complex(System.Math.PI, 0.0)
+
+let inline pi() :'Floating = () ? (Pi) <- defaultof<'Floating>
+
+let inline ( **) a (b:'Floating) :'Floating = a ** b
+let inline sqrt    (x:'Floating) :'Floating = sqrt x
+
+let inline asinh x :'Floating = log (x + sqrt (1G+x*x))
+let inline acosh x :'Floating = log (x + (x+1G) * sqrt ((x-1G)/(x+1G)))
+let inline atanh x :'Floating = (1G/2G) * log ((1G+x) / (1G-x))
+
+let inline logBase x y  :'Floating =  log y / log x
 
 
 // List functions ---------------------------------------------------------
