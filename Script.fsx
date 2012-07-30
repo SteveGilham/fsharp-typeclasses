@@ -283,6 +283,8 @@ let plus  n x = execState (sequence <| replicate n tick) x
 #load "Writer.fs"
 open Control.Monad.Writer
 
+let res12n44x55x1x2 = (+) <<|> Writer (3,[44;55]) </ap/> Writer (9,[1;2])
+
 
 #load "MonadTrans.fs"
 open Control.Monad.Trans
