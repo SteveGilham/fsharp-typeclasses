@@ -18,7 +18,7 @@ type WriterT< ^sma> with
         fun k -> WriterT <| do'{
             let! (a, w ) = m
             let! (b, w') = runWriterT (k a)
-            return (b,mappend w w')}
+            return (b, w </mappend/> w')}
 
     static member inline (?<-) (_        , _MonadPlus  :Mzero , _:WriterT<_>) = WriterT(mzero())
     static member inline (?<-) (WriterT m, _MonadPlus  :Mplus ,   WriterT n ) = WriterT(mplus m n)

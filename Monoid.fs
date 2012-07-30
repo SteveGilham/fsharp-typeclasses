@@ -3,9 +3,9 @@
 open Prelude
 
 type Mempty = Mempty with    
-    static member        (?<-) (_, _Monoid:Mempty, _:'a list  ) = []    :'a list
-    static member        (?<-) (_, _Monoid:Mempty, _:'a option) = None  :'a option
-    static member        (?<-) (_, _Monoid:Mempty, _:'a[]     ) = [||]  :'a[]
+    static member        (?<-) (_, _Monoid:Mempty, _:List<'a> ) = []      :List<'a>
+    static member        (?<-) (_, _Monoid:Mempty, _:Maybe<'a>) = Nothing :Maybe<'a>
+    static member        (?<-) (_, _Monoid:Mempty, _:array<'a>) = [||]    :array<'a>
     static member        (?<-) (_, _Monoid:Mempty, _:string   ) = ""
     static member        (?<-) (_, _Monoid:Mempty, _:Ordering ) = EQ
     static member        (?<-) (_, _Monoid:Mempty, _:unit     ) = ()
@@ -23,14 +23,14 @@ type Mempty with static member inline (?<-)  (_, _Monoid:Mempty, _: 'a*'b*'c*'d*
 
 
 type Mappend = Mappend with        
-    static member        (?<-) (x:list<_>  , _Monoid:Mappend, y      ) = List.append  x y        
-    static member inline (?<-) (x:option<_>, _Monoid:Mappend, y      ) = 
+    static member        (?<-) (x:List<_>  , _Monoid:Mappend, y      ) = x ++ y        
+    static member inline (?<-) (x:Maybe<_> , _Monoid:Mappend, y      ) = 
         match (x,y) with
-        | (Some a,Some b) -> Some (a ? (Mappend) <- b)
-        | (Some a,None  ) -> Some a
-        | (None  ,Some b) -> Some b
-        | _               -> None
-    static member        (?<-) (x:_[]      , _Monoid:Mappend, y      ) = Array.append x y
+        | (Just a , Just b ) -> Just (a ? (Mappend) <- b)
+        | (Just a , Nothing) -> Just a
+        | (Nothing, Just b ) -> Just b
+        | _                  -> Nothing
+    static member        (?<-) (x:array<_> , _Monoid:Mappend, y      ) = x </Array.append/> y
     static member        (?<-) (x:string   , _Monoid:Mappend, y      ) = x + y
     static member        (?<-) (x:Ordering , _Monoid:Mappend, y      ) =
         match (x,y) with
@@ -57,8 +57,8 @@ let inline mconcat x =
 
 
 type Dual<'a> = Dual of 'a with
-    static member inline (?<-) (_     , _Monoid:Mempty , _:Dual<'m>) = Dual (mempty()   ) :Dual<'m>
-    static member inline (?<-) (Dual x, _Monoid:Mappend,   Dual y  ) = Dual (mappend y x)
+    static member inline (?<-) (_     , _Monoid:Mempty , _:Dual<'m>) = Dual (mempty()) :Dual<'m>
+    static member inline (?<-) (Dual x, _Monoid:Mappend,   Dual y  ) = Dual (y </mappend/> x)
 let getDual (Dual x) = x
 
 type Endo<'a> = Endo of ('a -> 'a) with

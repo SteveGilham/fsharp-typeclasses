@@ -8,9 +8,9 @@ type Applicative = Applicative with
     static member inline ap  f x = ap f x
 
 type Pure = Pure with
-    static member (?<-) (_, _Applicative:Pure, _:'a option   ) = fun (x:'a) -> Applicative.pure' x :'a option
-    static member (?<-) (_, _Applicative:Pure, _:'a list     ) = fun (x:'a) -> Applicative.pure' x :'a list
-    static member (?<-) (_, _Applicative:Pure, _:'a IO       ) = fun (x:'a) -> Applicative.pure' x :'a IO
+    static member (?<-) (_, _Applicative:Pure, _:Maybe<'a>   ) = fun (x:'a) -> Applicative.pure' x :Maybe<'a>
+    static member (?<-) (_, _Applicative:Pure, _:List<'a>    ) = fun (x:'a) -> Applicative.pure' x :List<'a> 
+    static member (?<-) (_, _Applicative:Pure, _:IO<'a>      ) = fun (x:'a) -> Applicative.pure' x :IO<'a>   
     static member (?<-) (_, _Applicative:Pure, _: _ -> 'a    ) = const'
     static member (?<-) (_, _Applicative:Pure, _:Either<'e,_>) = fun (x:'a) -> Applicative.pure' x :Either<'e,_>
 
@@ -18,25 +18,25 @@ let inline pure' x : ^R = (() ? (Pure) <- defaultof< ^R> ) x
 
 
 type Ap = Ap with
-    static member (?<-) (f:option<_>, _Applicative:Ap, x:option<_>) = Applicative.ap f x
-    static member (?<-) (f:list<_>  , _Applicative:Ap, x:list<_>  ) = Applicative.ap f x
-    static member (?<-) (f:IO<_>    , _Applicative:Ap, x          ) = Applicative.ap f x
-    static member (?<-) (f:_ -> _   , _Applicative:Ap, g: _ -> _  ) = fun x ->  f x (g x)
+    static member (?<-) (f:Maybe<_>    , _Applicative:Ap, x:Maybe<_>    ) = Applicative.ap f x
+    static member (?<-) (f:List<_>     , _Applicative:Ap, x:List<_>     ) = Applicative.ap f x
+    static member (?<-) (f:IO<_>       , _Applicative:Ap, x             ) = Applicative.ap f x
+    static member (?<-) (f:_ -> _      , _Applicative:Ap, g: _ -> _     ) = fun x ->  f x (g x)
     static member (?<-) (f:Either<'e,_>, _Applicative:Ap, x:Either<'e,_>) = Applicative.ap f x
 
-let inline (<*>) x y = x ? (Ap) <- y
+let inline (<*>) (x:'a) (y:'b) : 'c = x ? (Ap) <- y
 
 
 type Empty = Empty with
-    static member (?<-) (_, _Alternative:Empty, _:'a option) = None
-    static member (?<-) (_, _Alternative:Empty, _:'a list  ) = []
+    static member (?<-) (_, _Alternative:Empty, _:Maybe<'a>) = Nothing
+    static member (?<-) (_, _Alternative:Empty, _:List<'a> ) = []
 
 let inline empty() : ^R = () ? (Empty) <- defaultof< ^R>
 
 
 type Append = Append with    
-    static member (?<-) (x:option<_>, _Alternative:Append, y) = match x with | None -> y | xs -> xs
-    static member (?<-) (x:list<_>  , _Alternative:Append, y) = List.append  x y
+    static member (?<-) (x:Maybe<_>, _Alternative:Append, y) = match x with | Nothing -> y | xs -> xs
+    static member (?<-) (x:List<_> , _Alternative:Append, y) = x ++ y
     
 let inline (<|>) (x:'a) (y:'a) : 'a = x ? (Append) <- y
 
@@ -48,7 +48,7 @@ let inline (  *>)   x   = x |> liftA2 (const' id)
 let inline (<*  )   x   = x |> liftA2 const'
 let inline (<**>)   x   = x |> liftA2 (|>)
 
-let inline optional v = Some <<|> v <|> pure' None
+let inline optional v = Just <<|> v <|> pure' Nothing
 
 type ZipList<'a> = ZipList of 'a seq with
     static member (?<-) (_        , _Functor    :Fmap,   ZipList x  ) = fun f -> ZipList (Seq.map f x)

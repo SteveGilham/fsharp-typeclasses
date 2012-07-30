@@ -4,7 +4,16 @@ let inline defaultof< ^T> = Unchecked.defaultof< ^T>
 
 let flip f x y = f y x
 let const' k _ = k
-let maybe  n f = function | None -> n | Some x -> f x
+
+let (</) = (|>)
+let (/>) = flip
+let (++) = (@)
+
+type Maybe<'t> = Option<'t>
+let  Just x :Maybe<'t> = Some x
+let  Nothing:Maybe<'t> = None
+let  (|Just|Nothing|) = function Some x -> Just x | _ -> Nothing
+let maybe  n f = function | Nothing -> n | Just x -> f x
 
 type Ordering = LT|EQ|GT
 
@@ -132,7 +141,7 @@ let inline gcd x y :'Integral =
     let zero = 0G
     let rec gcd' a = function
         | b when b = zero -> a
-        | b -> gcd' b (rem a b)
+        | b -> gcd' b (a </rem/> b)
     match(x,y) with
     | t when t = (zero,zero) -> failwith "Prelude.gcd: gcd 0 0 is undefined"
     | _                      -> gcd' (abs x) (abs y)
@@ -150,9 +159,9 @@ module Ratio =
         whenIntegral a
         let zero = 0G
         if b = zero then failwith "Ratio.%: zero denominator"
-        let (a,b) = if b < zero then (negate a,negate b) else (a,b)
+        let (a,b) = if b < zero then (negate a, negate b) else (a, b)
         let gcd = gcd a b
-        Ratio (quot a gcd, quot b gcd)
+        Ratio (a </quot/> gcd, b </quot/> gcd)
 
     let numerator   (Ratio(x,_)) = x
     let denominator (Ratio(_,x)) = x
@@ -280,8 +289,8 @@ let print    x = IO(fun() -> printfn "%A" x)
 // Functor class ----------------------------------------------------------
 
 type Fmap = Fmap with
-    static member (?<-) (_, _Functor:Fmap, x:option<_>    ) = fun f -> Option.map  f x
-    static member (?<-) (_, _Functor:Fmap, x:list<_>      ) = fun f -> List.map    f x  
+    static member (?<-) (_, _Functor:Fmap, x:Maybe<_>     ) = fun f -> Option.map  f x
+    static member (?<-) (_, _Functor:Fmap, x:List<_>      ) = fun f -> List.map    f x  
     static member (?<-) (_, _Functor:Fmap, x:IO<_>        ) = fun f -> primbindIO  x (primretIO << f)
     static member (?<-) (_, _Functor:Fmap, g:_->_         ) = (>>) g
     static member (?<-) (_, _Functor:Fmap, e:Either<'a,'b>) = fun f ->
@@ -300,17 +309,17 @@ let inline fmap f x = (() ? (Fmap) <- x) f
 // Monad class ------------------------------------------------------------
 
 type Return = Return with
-    static member (?<-) (_, _Monad:Return, _:'a option    ) = fun (x:'a) -> Some x
-    static member (?<-) (_, _Monad:Return, _:'a list      ) = fun (x:'a) -> [x]
-    static member (?<-) (_, _Monad:Return, _:'a IO        ) = fun (x:'a) -> primretIO x
+    static member (?<-) (_, _Monad:Return, _:Maybe<'a>    ) = fun (x:'a) -> Just x
+    static member (?<-) (_, _Monad:Return, _:List<'a>     ) = fun (x:'a) -> [x]
+    static member (?<-) (_, _Monad:Return, _:IO<'a>       ) = fun (x:'a) -> primretIO x
     static member (?<-) (_, _Monad:Return, _: _ -> 'a     ) = fun (x:'a) -> const' x
     static member (?<-) (_, _Monad:Return, _:Either<'e,'a>) = fun (x:'a) -> Right x : Either<'e,'a>
 
 let inline return' x : ^R = (() ? (Return) <- defaultof< ^R> ) x
 
 type Bind = Bind with
-    static member (?<-) (x:option<_>   , _Monad:Bind,_:option<'b>   ) = fun (f:_->option<'b>  ) -> Option.bind  f x
-    static member (?<-) (x:list<_>     , _Monad:Bind,_:list<'b>     ) = fun (f:_->list<'b>    ) -> List.collect f x
+    static member (?<-) (x:Maybe<_>    , _Monad:Bind,_:Maybe<'b>    ) = fun (f:_->Maybe<'b>   ) -> Option.bind  f x
+    static member (?<-) (x:List<_>     , _Monad:Bind,_:List<'b>     ) = fun (f:_->List<'b>    ) -> List.collect f x
     static member (?<-) (x:IO<_>       , _Monad:Bind,_:IO<'b>       ) = fun (f:_->IO<'b>      ) -> primbindIO x f
     static member (?<-) (f:'e->'a      , _Monad:Bind,_:'e->'b       ) = fun (k:_->_->'b) r      -> k (f r) r
     static member (?<-) (x:Either<'e,_>, _Monad:Bind,_:Either<'e,'b>) = fun (k:_->Either<_,'b>) -> match x with

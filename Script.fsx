@@ -8,6 +8,7 @@ let res5_55:Integer * _ = properFraction 5.55M
 let res111_20 = toRational 5.55
 let res4_3    = toRational (12 % 9)
 let res17_1   = toRational 17uy
+let divisions = map ( quot/> 5G) [5;8;10;15;20]
 
 let inline quadratic a b c =
     let root1 = ( -b + sqrt (  b **^ 2 - 4G * a * c) )  / (2G * a)
@@ -53,13 +54,14 @@ let action = do' {
 
 // Functors
 
-let times2,plus3 = (*) 2, (+) 3
+let times2,minus3 = (*) 2, (-)/> 3
 
-let valTimes3   = fmap plus3 (Some 4)
-let noValue     = fmap plus3 None
-let lstTimes2   = fmap times2 [1;2;3;4]
-let times2plus3 = fmap times2 plus3
-let getChars    = fmap (fun (x:string) -> x.ToCharArray() |> Seq.toList ) action
+let resJust1      = fmap minus3 (Some 4G)
+let noValue       = fmap minus3 None
+let lstTimes2     = fmap times2 [1;2;3;4]
+let fTimes2minus3 = fmap minus3 times2
+let res39         = fTimes2minus3 21G
+let getChars      = fmap (fun (x:string) -> x.ToCharArray() |> Seq.toList ) action
 // try -> runIO getChars ;;
 
 
@@ -69,7 +71,7 @@ let getChars    = fmap (fun (x:string) -> x.ToCharArray() |> Seq.toList ) action
 type Tree<'a> =
     | Tree of 'a * Tree<'a> * Tree<'a>
     | Leaf of 'a
-    static member map f (t:Tree< 'a>  )  =
+    static member map f (t:Tree<'a>  )  =
         match t with
         | Leaf x -> Leaf (f x)
         | Tree(x,t1,t2) -> Tree(f x, Tree.map f t1, Tree.map f t2)
@@ -78,7 +80,7 @@ type Tree<'a> =
     static member (?<-) (_    , _Functor:Fmap, x:Tree<_>) = fun f -> Tree.map f x
 
 let myTree = Tree(6, Tree(2, Leaf(1), Leaf(3)), Leaf(9))
-let mappedTree = fmap times2plus3 myTree
+let mappedTree = fmap fTimes2minus3 myTree
 
 
 
@@ -100,7 +102,7 @@ let resHi = mappend (mempty()) "Hi"
 let resGT = mappend (mempty()) GT
 let resLT = mconcat [mempty(); LT ; EQ ;GT]
 let res9823 = mconcat (fmap Dual [mempty();"3";"2";"8";"9"])
-let resBA = mappend (Dual "A" ) (Dual "B" )
+let resBA = (Dual "A" ) </mappend/> (Dual "B" )
 let resEl00:list<int>*Sum<float> = mempty()
 let resS3P20     = mappend (Sum 1G,Product 5.0) (Sum 2,Product 4G)
 let res230       = mappend (mempty(),mempty()) ([2],[3.0])
@@ -184,7 +186,7 @@ let res18n24 = pure' (+) <*> ZipList(seq [8;4]) <*> ZipList(seq [10;20])
 open Data.Foldable
 
 let resGt = foldMap (compare' 2) [1;2;3]
-let resHW = foldMap (fun x -> Some ("hello " + x)) (Some "world")
+let resHW = foldMap (fun x -> Just ("hello " + x)) (Just "world")
 
 module FoldableTree =
     type Tree<'a> =
@@ -216,10 +218,10 @@ module FoldableTree =
 open Data.Traversable
 
 let f x = if x < 200 then [3 - x] else []
-let g x = if x < 200 then Some (3 - x) else None
+let g x = if x < 200 then Just (3 - x) else Nothing
 
-let resSomeminus100 = traverse f (Some 103)
-let resLstOfNull    = traverse f None 
+let resSomeminus100 = traverse f (Just 103)
+let resLstOfNull    = traverse f Nothing 
 let res210          = traverse f [1;2;3]  
 let resSome210      = traverse g [1;2;3]  
 let resEmptyList    = traverse f [1000;2000;3000] 
@@ -290,8 +292,8 @@ open Control.Monad.Trans.ListT
 let maybeT = MaybeT [Some 2; Some 4] >>= fun x -> MaybeT [Some x; Some (x+10)]
 let listT  = ListT  (Some [2;4]    ) >>= fun x -> ListT  (Some [x; x+10]     )
 
-let apMaybeT = ap (MaybeT [Some ((+) 3)] ) ( MaybeT [Some  3 ] )
-let apListT  = ap (ListT  (Some [(+) 3]) ) ( ListT  (Some [3]) )
+let apMaybeT = ap (MaybeT [Just ((+) 3)] ) ( MaybeT [Just  3 ] )
+let apListT  = ap (ListT  (Just [(+) 3]) ) ( ListT  (Just [3]) )
 
 let getAtLeast8Chars:MaybeT<_> =  lift getLine >>= fun s -> (guard (String.length s >= 8) ) >>= fun _ -> return' s
 //try -> runIO <| runMaybeT getAtLeast8Chars

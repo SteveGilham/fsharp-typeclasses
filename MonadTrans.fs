@@ -5,7 +5,7 @@ open Control.Monad.Base
 open Control.Applicative
 
 let singleton x = [x]
-let concat (x:'a list list) :'a list = List.concat x
+let concat (x:List<List<'a>>) :List<'a> = List.concat x
 
 module MaybeT =
 
@@ -14,20 +14,20 @@ module MaybeT =
 
     let inline runMaybeT   (MaybeT m) = m
     type MaybeT< ^ma > with
-        static member inline (?<-) (_       , _Monad  :Return, t:MaybeT<_>  ) = MaybeT << return' << Some
+        static member inline (?<-) (_       , _Monad  :Return, t:MaybeT<_>  ) = MaybeT << return' << Just
         static member inline (?<-) (MaybeT x, _Monad  :Bind  , t:MaybeT< ^b>) = fun (f: ^a -> MaybeT< ^b>) -> MaybeT <| do' {
             let! maybe_value = x
             return! match maybe_value with
-                    | None       -> return' None
-                    | Some value -> runMaybeT <| f value}
+                    | Nothing    -> return' Nothing
+                    | Just value -> runMaybeT <| f value}
 
         static member inline (?<-) (f:MaybeT<_->_>, _Applicative:Ap   , _:MaybeT< ^b>) = fun x -> ap f x
-        static member inline (?<-) (_             , _MonadPlus  :Mzero, _:MaybeT<_>  ) = MaybeT (return' None)
+        static member inline (?<-) (_             , _MonadPlus  :Mzero, _:MaybeT<_>  ) = MaybeT (return' Nothing)
         static member inline (?<-) (MaybeT x      , _MonadPlus  :Mplus,   MaybeT y   ) = MaybeT <| do' {
                 let! maybe_value = x
                 return! match maybe_value with
-                        | None -> y
-                        | Some value -> x}
+                        | Nothing    -> y
+                        | Just value -> x}
 
     let inline mapMaybeT f (MaybeT m) = MaybeT (f m)
 
@@ -48,7 +48,7 @@ module ListT =
         static member inline (?<-) (ListT x      , _MonadPlus  :Mplus,   ListT y   ) = ListT <| do' {
             let! a = x
             let! b = y
-            return (a @ b)}
+            return (a ++ b)}
 
     let inline mapListT f (ListT  m) = ListT (f m)
 
@@ -56,8 +56,8 @@ open MaybeT
 open ListT
 
 type Lift = Lift with
-    static member inline (?<-) (x, _MonadTrans:Lift, _:MaybeT<_>) = MaybeT << (liftM Some)      <| x
-    static member inline (?<-) (x, _MonadTrans:Lift, _: ListT<_>) = ListT  << (liftM singleton) <| x
+    static member inline (?<-) (x, _MonadTrans:Lift, _:MaybeT<_>) = MaybeT << (liftM Just)      <| x
+    static member inline (?<-) (x, _MonadTrans:Lift, _:ListT<_> ) = ListT  << (liftM singleton) <| x
 
 let inline lift x : ^R = x ? (Lift) <- defaultof< ^R>
 
@@ -73,7 +73,7 @@ let inline liftIO x : ^R = x ? (LiftIO) <- defaultof< ^R>
 open Control.Monad.Cont
 
 type CallCC = CallCC with
-    static member inline (?<-) (f, _MonadCont:CallCC, _:MaybeT<_>) = MaybeT(callCC <| fun c -> runMaybeT(f (MaybeT << c << Some)))    
+    static member inline (?<-) (f, _MonadCont:CallCC, _:MaybeT<_>) = MaybeT(callCC <| fun c -> runMaybeT(f (MaybeT << c << Just)))    
     static member inline (?<-) (f, _MonadCont:CallCC, _:ListT<_> ) = ListT (callCC <| fun c -> runListT (f (ListT  << c << singleton)))
     static member        (?<-) (f, _MonadCont:CallCC, _:Cont<_,_>) = callCC f
 
@@ -131,7 +131,7 @@ type Listen = Listen with
 let inline listen m : ^R = m ? (Listen) <- defaultof< ^R>
 
 type Pass = Pass with
-    static member inline (?<-) (m, _MonadWriter:Pass, _:MaybeT<_>  ) = MaybeT (runMaybeT m >>= maybe (return' None) (liftM Some << pass << return'))
+    static member inline (?<-) (m, _MonadWriter:Pass, _:MaybeT<_>  ) = MaybeT (runMaybeT m >>= maybe (return' Nothing) (liftM Just << pass << return'))
     static member        (?<-) (m, _MonadWriter:Pass, _:Writer<_,_>) = pass m
 
 let inline pass m : ^R = m ? (Pass) <- defaultof< ^R>
