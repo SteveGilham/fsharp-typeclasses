@@ -5,12 +5,12 @@ open Control.Applicative
 open Data.Foldable
 
 type Traversable = Traversable with
-    static member inline traverse (Traversable, f, t)  =
+    static member inline traverse (Traversable, f, t:Maybe<_>) =
         match t with
-        | None   -> pure' None
-        | Some x -> fmap Some (f x)
+        | Nothing -> pure' Nothing
+        | Just x  -> fmap Just (f x)
      
-    static member inline traverse (Traversable, f, t:list<_>) =
+    static member inline traverse (Traversable, f, t:List<_> ) =
         let cons x y = x :: y
         let cons_f x ys = fmap cons (f x) <*> ys
         (foldr cons_f (pure' [] )) t

@@ -5,9 +5,9 @@ open Prelude
 #nowarn "64"
 
 type Monoid = Monoid with    
-    static member        mempty (Monoid, _:'a list  ) = []    :'a list
-    static member        mempty (Monoid, _:'a option) = None  :'a option
-    static member        mempty (Monoid, _:'a[]     ) = [||]  :'a[]
+    static member        mempty (Monoid, _:List<'a> ) = []   :List<'a> 
+    static member        mempty (Monoid, _:Maybe<'a>) = None :Maybe<'a>
+    static member        mempty (Monoid, _:array<'a>) = [||] :array<'a>
     static member        mempty (Monoid, _:string   ) = ""
     static member        mempty (Monoid, _:Ordering ) = EQ
     static member        mempty (Monoid, _:unit     ) = ()
@@ -27,22 +27,21 @@ type Monoid with static member inline mempty  (Monoid, _: 'a*'b*'c*'d*'e) =
 let inline mappend (x:^a) (y:^a) : 'a = ((^C or ^a) : (static member mappend: ^C * ^a * ^a -> _) (Monoid, x, y))
         
 type Monoid with        
-    static member        mappend (Monoid,x:list<_>  , y      ) = List.append  x y        
-    static member inline mappend (Monoid,x:option<_>, y      ) = 
+    static member        mappend (Monoid,x:List<_> , y  ) = x ++ y        
+    static member inline mappend (Monoid,x:Maybe<_>, y  ) = 
         match (x,y) with 
-        | (Some a,Some b) -> Some(mappend a b)
-        | (Some a,None  ) -> Some a
-        | (None  ,Some b) -> Some b
+        | (Just a , Just b ) -> Just(a </mappend/> b)
+        | (Just a , Nothing) -> Just a
+        | (Nothing, Just b ) -> Just b
         | _               -> None
-    static member        mappend (Monoid, x:_[]      , y      ) = Array.append x y
-    static member        mappend (Monoid, x:string   , y      ) = x + y
-    static member        mappend (Monoid, x:Ordering , y      ) =
+    static member        mappend (Monoid, x:array<_> , y) = x </Array.append/> y
+    static member        mappend (Monoid, x:string   , y) = x + y
+    static member        mappend (Monoid, x:Ordering , y) =
         match (x,y) with
         | (LT,_) -> LT
         | (EQ,a) -> a
         | (GT,_) -> GT
     static member        mappend (Monoid, (), _:unit ) = ()
-
 
 
 type Monoid with static member inline mappend (Monoid, (x1,x2         ), (y1,y2         )) = 
@@ -61,8 +60,8 @@ let inline mconcat x =
 
 
 type Dual<'a> = Dual of 'a with
-    static member inline mempty  (Monoid,       _:Dual<'m>) = Dual (mempty()   ) :Dual<'m>
-    static member inline mappend (Monoid, Dual x, Dual y  ) = Dual (mappend y x)
+    static member inline mempty  (Monoid,       _:Dual<'m>) = Dual (mempty()) :Dual<'m>
+    static member inline mappend (Monoid, Dual x, Dual y  ) = Dual (y </mappend/> x)
 let getDual (Dual x) = x
 
 type Endo<'a> = Endo of ('a -> 'a) with

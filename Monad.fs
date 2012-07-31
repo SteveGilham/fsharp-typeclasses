@@ -1,15 +1,16 @@
 ﻿module Control.Monad.Base
 open Prelude
 
-// MonadPlus class ------------------------------------------------------------
 #nowarn "64"
+
+// MonadPlus class ------------------------------------------------------------
+
 type MonadPlus = MonadPlus with
-    static member mzero (MonadPlus, _:'a option) = None
-    static member mzero (MonadPlus, _:'a list  ) = []
+    static member mzero (MonadPlus, _:Maybe<'a>) = None
+    static member mzero (MonadPlus, _:List<'a> ) = []
 
-    static member mplus (MonadPlus, x:option<_>, y) = match x with | None -> y | xs   -> xs
-    static member mplus (MonadPlus, x:list<_>  , y) = List.append  x y
-
+    static member mplus (MonadPlus, x:Maybe<_>, y) = match x with | Nothing -> y | xs -> xs
+    static member mplus (MonadPlus, x:List<_> , y) = x ++ y
 
 let inline mzero () : ^R = ((^C or ^R) : (static member mzero : ^C * ^R -> _     ) (MonadPlus,    defaultof< ^R>))
 let inline mplus (x:'a) (y:'a) : 'a = ((^C or ^a or ^R) : (static member mplus: ^C * ^a * ^R -> _) (MonadPlus, x, y))
