@@ -24,11 +24,13 @@ type Monoid with static member inline mempty  (Monoid, _: 'a*'b*'c*'d*'e) =
                     (mempty(),mempty(),mempty(),mempty(),mempty()): 'a*'b*'c*'d*'e
 
 
+let inline mappend (x:^a) (y:^a) : 'a = ((^C or ^a) : (static member mappend: ^C * ^a * ^a -> _) (Monoid, x, y))
+        
 type Monoid with        
     static member        mappend (Monoid,x:list<_>  , y      ) = List.append  x y        
     static member inline mappend (Monoid,x:option<_>, y      ) = 
-        match (x,y) with
-        | (Some a,Some b) -> Some ((^C or ^a) : (static member mappend: ^C * ^a * ^a -> _) (Monoid, a, b))
+        match (x,y) with 
+        | (Some a,Some b) -> Some(mappend a b)
         | (Some a,None  ) -> Some a
         | (None  ,Some b) -> Some b
         | _               -> None
@@ -41,7 +43,7 @@ type Monoid with
         | (GT,_) -> GT
     static member        mappend (Monoid, (), _:unit ) = ()
 
-let inline mappend (x:^a) (y:^a) : 'a = ((^C or ^a) : (static member mappend: ^C * ^a * ^a -> _) (Monoid, x, y))
+
 
 type Monoid with static member inline mappend (Monoid, (x1,x2         ), (y1,y2         )) = 
                     (mappend x1 y1,mappend x2 y2                                          ) :'a*'b
