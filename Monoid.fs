@@ -66,12 +66,10 @@ type Dual<'a> = Dual of 'a with
 let getDual (Dual x) = x
 
 type Endo<'a> = Endo of ('a -> 'a) with
-    static member        mempty  (Monoid, _:Endo<'m>) = Endo id  :Endo<'m>
+    static member        mempty  (Monoid, _:Endo<'m>) = Endo id :Endo<'m>
     static member        mappend (Monoid,   Endo f, Endo g  ) = Endo (f << g)
 
 let appEndo (Endo f) = f
-
-open LanguagePrimitives
 
 type All = All of bool with
     static member mempty  (Monoid, _:All  ) = All true
@@ -82,9 +80,9 @@ type Any = Any of bool with
     static member mappend (Monoid,   Any x, Any y) = Any (x || y)
 
 type Sum<'a> = Sum of 'a with
-    static member inline mempty  (Monoid, _:Sum<'n>  ) = Sum GenericZero :Sum<'n>
-    static member inline mappend (Monoid,   Sum (x:'n), Sum(y:'n)) = Sum (x + y)     :Sum<'n>
+    static member inline mempty  (Monoid, _:Sum<'n>  ) = Sum 0G :Sum<'n>
+    static member inline mappend (Monoid,   Sum (x:'n), Sum(y:'n)) = Sum (x + y) :Sum<'n>
 
 type Product<'a> = Product of 'a with
-    static member inline mempty  (Monoid, _:Product<'n>  ) = Product GenericOne :Product<'n>
-    static member inline mappend (Monoid,   Product (x:'n), Product(y:'n)) = Product (x * y)    :Product<'n>
+    static member inline mempty  (Monoid, _:Product<'n>  ) = Product 1G :Product<'n>
+    static member inline mappend (Monoid,   Product (x:'n), Product(y:'n)) = Product (x * y) :Product<'n>
