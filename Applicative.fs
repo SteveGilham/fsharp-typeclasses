@@ -14,14 +14,14 @@ type Applicative = Applicative with
     static member pure' (_:Applicative, _:Either<'e,_>) = fun (x:'a) -> Applicative.pure' x :Either<'e,_>
 
     static member inline ap f = fun x -> ap f x
-    static member ap (_:Applicative, f:Maybe<_>    , x:Maybe<_>    ) = Applicative.ap f x
-    static member ap (_:Applicative, f:List<_>     , x:List<_>     ) = Applicative.ap f x
-    static member ap (_:Applicative, f:IO<_>       , x             ) = Applicative.ap f x
-    static member ap (_:Applicative, f:_ -> _      , g: _ -> _     ) = fun x ->  f x (g x)
-    static member ap (_:Applicative, f:Either<'e,_>, x:Either<'e,_>) = Applicative.ap f x
+    static member ap (_:Applicative, f:Maybe<_>    , x:Maybe<'a>    , _:Maybe<'b>    ) = Applicative.ap f x 
+    static member ap (_:Applicative, f:List<_>     , x:List<'a>     , _:List<'b>     ) = Applicative.ap f x 
+    static member ap (_:Applicative, f:IO<_>       , x:IO<'a>       , _:IO<'b>       ) = Applicative.ap f x 
+    static member ap (_:Applicative, f:_ -> _      , g: _ -> 'a     , _: _ -> 'b     ) = fun x ->  f x (g x)
+    static member ap (_:Applicative, f:Either<'e,_>, x:Either<'e,'a>, _:Either<'e,'b>) = Applicative.ap f x 
 
 let inline pure' x : ^R = ((^C or ^R) : (static member pure': ^C * ^R -> _) (Applicative, defaultof< ^R>)) x
-let inline (<*>) (x:^a) (y:^b) :'c = ((^C or ^a or ^b) : (static member ap: ^C * ^a * ^b -> _) (Applicative, x, y))
+let inline (<*>) x y : ^R = ((^C or ^a or ^b or ^R) : (static member ap: ^C * ^a * ^b * _-> ^R) (Applicative, x, y,defaultof< ^R>))
 
 
 type Alternative = Alternative with
@@ -46,5 +46,5 @@ let inline optional v = Just <<|> v <|> pure' Nothing
 
 type ZipList<'a> = ZipList of 'a seq with
     static member fmap (Functor, ZipList x     ) = fun f -> ZipList (Seq.map f x)
-    static member pure' (Applicative, _:ZipList<'a>) = fun x -> ZipList (Seq.initInfinite (const' x))
-    static member ap    (Applicative, ZipList f, ZipList x  ) = ZipList (Seq.zip f x |> Seq.map (fun (f,x) -> f x))
+    static member pure' (Applicative, _:ZipList<'a>) = fun (x:'a) -> ZipList (Seq.initInfinite (const' x))
+    static member ap    (Applicative, ZipList (f:seq<_>), ZipList x ,_:'R) = ZipList (Seq.zip f x |> Seq.map (fun (f,x) -> f x)) :'R
