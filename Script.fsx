@@ -136,6 +136,8 @@ let pythags' = doPlus{
   let! y = [x..z]
   if (x*x + y*y = z*z) then return (x, y, z)}
 
+let allCombinations = sequence [!"abc"; !"12"]
+
 
 // Arrows
 #load "Arrow.fs"

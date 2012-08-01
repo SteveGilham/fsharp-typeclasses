@@ -9,6 +9,13 @@ let (</) = (|>)
 let (/>) = flip
 let (++) = (@)
 
+type DeReference = DeReference with
+    static member (?<-) (_, DeReference, a:'a ref) = !a
+    static member (?<-) (_, DeReference, a:string) = a.ToCharArray() |> Array.toList
+    static member (?<-) (_, DeReference, a:DeReference) = DeReference
+
+let inline (!) a = () ? (DeReference) <- a
+
 type Maybe<'t> = Option<'t>
 let  Just x :Maybe<'t> = Some x
 let  Nothing:Maybe<'t> = None
