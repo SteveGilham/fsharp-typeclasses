@@ -168,7 +168,8 @@ let res4n8n12 = runKleisli (app()) (Kleisli (fun y -> [y;y*2;y*3]) , 4)
 open Control.Applicative
 
 // lists
-let res3n4 = pure' ((+) 2) <*> [1;2]
+let res3n4   = pure' ((+) 2) <*> [1;2]
+let res2n4n8 = pure' ( **^) </ap/> pure' 2. <*> [1;2;3]
 
 // functions
 let res3 = pure' 3 "anything"
@@ -179,7 +180,9 @@ let res508 = (fmap (+) ((+) 3 ) <*> (*) 100) 5
 //ZipList
 let res9n5   = fmap ((+) 1) (ZipList(seq [8;4]))
 let res18n24 = pure' (+) <*> ZipList(seq [8;4]) <*> ZipList(seq [10;20])
-let res6n7n8 = pure' (+) <*> pure' 5 <*> ZipList [1;2;3]
+let res6n7n8 = pure' (+) <*> pure' 5G <*> ZipList [1;2;3]
+
+
 
 // Foldable
 #load "Foldable.fs"

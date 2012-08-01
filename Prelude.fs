@@ -306,17 +306,17 @@ let inline fmap f x =   ((^C or ^a) : (static member fmap : ^C * ^a -> _) (Funct
 // Monad class ------------------------------------------------------------
 
 type Monad = Monad with
-    static member return' (Monad, _:Maybe<_>    ) = fun (x:'a) -> Some x
-    static member return' (Monad, _:List<_>     ) = fun (x:'a) -> [x]
-    static member return' (Monad, _:IO<'a>      ) = fun (x:'a) -> primretIO x
-    static member return' (Monad, _: _ -> 'a    ) = fun (x:'a) -> const' x
-    static member return' (Monad, _:Either<_,'a>) = fun (x:'a) -> Right x
+    static member return' (Monad, _:Maybe<'a>    ) = fun x -> Some x      :Maybe<'a>
+    static member return' (Monad, _:List<'a>     ) = fun x -> [x]         :List<'a>
+    static member return' (Monad, _:IO<'a>       ) = fun x -> primretIO x :IO<'a>
+    static member return' (Monad, _:'r -> 'a     ) = fun x -> const'    x :'r -> 'a
+    static member return' (Monad, _:Either<'e,'a>) = fun x -> Right     x :Either<'e,'a>
      
-    static member bind (Monad, x:Maybe<_>     , _:Maybe<'b>    ) = fun f -> Option.bind f x
-    static member bind (Monad, x:List<_>      , _:List<'b>     ) = fun f -> List.collect f x
-    static member bind (Monad, x:IO<_>        , _:IO<'b>       ) = fun f -> primbindIO x f
-    static member bind (Monad, f:'e->'a       , _:'e->'b       ) = fun (k:'a->'e->'b) r -> k (f r) r
-    static member bind (Monad, x:Either<'e,'a>, _:Either<'e,'b>) = fun (k:_->Either<_,'b>) -> match x with
+    static member bind (Monad, x:Maybe<_>    , _:Maybe<'b>    ) = fun (f:_->Maybe<'b>   ) -> Option.bind  f x
+    static member bind (Monad, x:List<_>     , _:List<'b>     ) = fun (f:_->List<'b>    ) -> List.collect f x
+    static member bind (Monad, x:IO<_>       , _:IO<'b>       ) = fun (f:_->IO<'b>      ) -> primbindIO x f
+    static member bind (Monad, f:'r->_       , _:'r->'b       ) = fun (k:_->_->'b) r      -> k (f r) r
+    static member bind (Monad, x:Either<'e,_>, _:Either<'e,'b>) = fun (k:_->Either<_,'b>) -> match x with
                                                                                               | Left  l -> Left l
                                                                                               | Right r -> k r
 
