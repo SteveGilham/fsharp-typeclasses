@@ -167,7 +167,8 @@ let res4n8n12 = runKleisli (app()) (Kleisli (fun y -> [y;y*2;y*3]) , 4)
 open Control.Applicative
 
 // lists
-let res3n4 = pure' ((+) 2) <*> [1;2]
+let res3n4   = pure' ((+) 2) <*> [1;2]
+let res2n4n8 = pure' ( **^) </ap/> pure' 2. <*> [1;2;3]
 
 // functions
 let res3 = pure' 3 "anything"

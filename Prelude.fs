@@ -309,11 +309,11 @@ let inline fmap f x = (() ? (Fmap) <- x) f
 // Monad class ------------------------------------------------------------
 
 type Return = Return with
-    static member (?<-) (_, _Monad:Return, _:Maybe<'a>    ) = fun (x:'a) -> Just x
-    static member (?<-) (_, _Monad:Return, _:List<'a>     ) = fun (x:'a) -> [x]
-    static member (?<-) (_, _Monad:Return, _:IO<'a>       ) = fun (x:'a) -> primretIO x
-    static member (?<-) (_, _Monad:Return, _: _ -> 'a     ) = fun (x:'a) -> const' x
-    static member (?<-) (_, _Monad:Return, _:Either<'e,'a>) = fun (x:'a) -> Right x : Either<'e,'a>
+    static member (?<-) (_, _Monad:Return, _:Maybe<'a>    ) = fun x -> Just x      :Maybe<'a>
+    static member (?<-) (_, _Monad:Return, _:List<'a>     ) = fun x -> [x]         :List<'a>
+    static member (?<-) (_, _Monad:Return, _:IO<'a>       ) = fun x -> primretIO x :IO<'a>
+    static member (?<-) (_, _Monad:Return, _: 'r -> 'a    ) = fun x -> const'    x : 'r -> 'a
+    static member (?<-) (_, _Monad:Return, _:Either<'e,'a>) = fun x -> Right     x :Either<'e,'a>
 
 let inline return' x : ^R = (() ? (Return) <- defaultof< ^R> ) x
 
@@ -321,7 +321,7 @@ type Bind = Bind with
     static member (?<-) (x:Maybe<_>    , _Monad:Bind,_:Maybe<'b>    ) = fun (f:_->Maybe<'b>   ) -> Option.bind  f x
     static member (?<-) (x:List<_>     , _Monad:Bind,_:List<'b>     ) = fun (f:_->List<'b>    ) -> List.collect f x
     static member (?<-) (x:IO<_>       , _Monad:Bind,_:IO<'b>       ) = fun (f:_->IO<'b>      ) -> primbindIO x f
-    static member (?<-) (f:'e->'a      , _Monad:Bind,_:'e->'b       ) = fun (k:_->_->'b) r      -> k (f r) r
+    static member (?<-) (f:'r->'a      , _Monad:Bind,_:'r->'b       ) = fun (k:_->_->'b) r      -> k (f r) r
     static member (?<-) (x:Either<'e,_>, _Monad:Bind,_:Either<'e,'b>) = fun (k:_->Either<_,'b>) -> match x with
                                                                                                    | Left  l -> Left l
                                                                                                    | Right r -> k r

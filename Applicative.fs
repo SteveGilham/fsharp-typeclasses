@@ -11,7 +11,7 @@ type Pure = Pure with
     static member (?<-) (_, _Applicative:Pure, _:Maybe<'a>   ) = fun (x:'a) -> Applicative.pure' x :Maybe<'a>
     static member (?<-) (_, _Applicative:Pure, _:List<'a>    ) = fun (x:'a) -> Applicative.pure' x :List<'a> 
     static member (?<-) (_, _Applicative:Pure, _:IO<'a>      ) = fun (x:'a) -> Applicative.pure' x :IO<'a>   
-    static member (?<-) (_, _Applicative:Pure, _: _ -> 'a    ) = const'
+    static member (?<-) (_, _Applicative:Pure, _:'r -> 'a    ) = const':'a  -> 'r -> _
     static member (?<-) (_, _Applicative:Pure, _:Either<'e,_>) = fun (x:'a) -> Applicative.pure' x :Either<'e,_>
 
 let inline pure' x : ^R = (() ? (Pure) <- defaultof< ^R> ) x
@@ -50,7 +50,7 @@ let inline (<**>)   x   = x |> liftA2 (|>)
 
 let inline optional v = Just <<|> v <|> pure' Nothing
 
-type ZipList<'a> = ZipList of 'a seq with
+type ZipList<'s> = ZipList of 's seq with
     static member (?<-) (_        , _Functor    :Fmap,   ZipList x  ) = fun f -> ZipList (Seq.map f x)
-    static member (?<-) (_        , _Applicative:Pure, _:ZipList<'a>) = fun x -> ZipList (Seq.initInfinite (const' x))
+    static member (?<-) (_        , _Applicative:Pure, _:ZipList<'a>) = fun (x:'a) -> ZipList (Seq.initInfinite (const' x))
     static member (?<-) (ZipList f, _Applicative:Ap  ,   ZipList x  ) = ZipList (Seq.zip f x |> Seq.map (fun (f,x) -> f x))

@@ -24,12 +24,6 @@ type Mempty with static member inline (?<-)  (_, _Monoid:Mempty, _: 'a*'b*'c*'d*
 
 type Mappend = Mappend with        
     static member        (?<-) (x:List<_>  , _Monoid:Mappend, y      ) = x ++ y        
-    static member inline (?<-) (x:Maybe<_> , _Monoid:Mappend, y      ) = 
-        match (x,y) with
-        | (Just a , Just b ) -> Just (a ? (Mappend) <- b)
-        | (Just a , Nothing) -> Just a
-        | (Nothing, Just b ) -> Just b
-        | _                  -> Nothing
     static member        (?<-) (x:array<_> , _Monoid:Mappend, y      ) = x </Array.append/> y
     static member        (?<-) (x:string   , _Monoid:Mappend, y      ) = x + y
     static member        (?<-) (x:Ordering , _Monoid:Mappend, y      ) =
@@ -40,6 +34,15 @@ type Mappend = Mappend with
     static member        (?<-) (()         , _Monoid:Mappend, _:unit ) = ()
 
 let inline mappend (x:'a) (y:'a) : 'a = x ? (Mappend) <- y
+
+type Mappend with
+    static member inline (?<-) (x:Maybe<_> , _Monoid:Mappend, y      ) = 
+        match (x,y) with
+        | (Just a , Just b ) -> Just (a </mappend/> b)
+        | (Just a , Nothing) -> Just a
+        | (Nothing, Just b ) -> Just b
+        | _                  -> Nothing
+
 
 type Mappend with static member inline (?<-) ((x1,x2         ), _Monoid:Mappend, (y1,y2         )) = 
                     (mappend x1 y1,mappend x2 y2                                          ) :'a*'b
