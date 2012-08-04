@@ -158,7 +158,7 @@ let inline gcd x y :'Integral =
 // Ratio ------------------------------------------------------------------
 
 module Ratio = 
-    type Ratio<'Integral> = private Ratio of 'Integral * 'Integral with
+    type Ratio<'Integral> = Ratio of 'Integral * 'Integral with
         override this.ToString() =
             let (Ratio(n,d)) = this
             n.ToString() + " % " + d.ToString()
@@ -171,6 +171,7 @@ module Ratio =
         let gcd = gcd a b
         Ratio (a </quot/> gcd, b </quot/> gcd)
 
+    let inline Ratio (x,y) = x % y
     let numerator   (Ratio(x,_)) = x
     let denominator (Ratio(_,x)) = x
 
