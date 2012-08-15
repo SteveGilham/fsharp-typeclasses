@@ -3,19 +3,18 @@
 open Prelude
 open Control.Monad.Base
 
-type Kleisli< 'a, 'm> = Kleisli of ( 'a -> 'm)
+type Kleisli<'a, 'm> = Kleisli of ('a -> 'm)
 let runKleisli (Kleisli f) = f
 
 
-
 type Id = Id with
-    static member        (?<-) (_, _Category:Id, _: 'r->'r       ) = id              : 'r->'r
+    static member        (?<-) (_, _Category:Id, _: 'r -> 'r     ) = id              : 'r -> 'r
     static member inline (?<-) (_, _Category:Id, _:Kleisli<'a,'b>) = Kleisli return' :Kleisli<'a,'b>
 
 let inline id'() : ^R = (() ? (Id) <- defaultof< ^R>)
 
 type Comp = Comp with
-    static member        (?<-) (        f, _Category:Comp, g:_->_   ) =          g >>  f
+    static member        (?<-) (        f, _Category:Comp, g: _ -> _) =          g >>  f
     static member inline (?<-) (Kleisli f, _Category:Comp, Kleisli g) = Kleisli (g >=> f)
 
 let inline (<<<) f g = f ? (Comp) <- g
@@ -23,14 +22,14 @@ let inline (>>>) g f = f ? (Comp) <- g
 
 
 type Arr = Arr with
-    static member        (?<-) (f:_->_, _Arrow:Arr, _: _ -> _     ) = f
-    static member inline (?<-) (f     , _Arrow:Arr, _:Kleisli<_,_>) = Kleisli (return' <<< f)
+    static member        (?<-) ((), _Arrow:Arr, _: _ -> _     ) = fun (f:_->_) -> f
+    static member inline (?<-) ((), _Arrow:Arr, _:Kleisli<_,_>) = fun (f     ) -> Kleisli (return' <<< f)
 
-let inline arr f : ^R = f ? (Arr) <- defaultof< ^R>
+let inline arr f : ^R = (() ? (Arr) <- defaultof< ^R>) f
 
 type First = First with
     static member        (?<-) (f        , _Arrow:First, _: 'a -> 'b   ) = fun (x,y) -> (f x, y)
-    static member inline (?<-) (Kleisli f, _Arrow:First, _:Kleisli<_,_>) = Kleisli (fun (b,d) -> f b >>>= fun c -> return' (c,d))
+    static member inline (?<-) (Kleisli f, _Arrow:First, _:Kleisli<_,_>) = Kleisli (fun (b,d) -> f b >>= fun c -> return' (c,d))
 
 let inline first f : ^R = f ? (First) <- defaultof< ^R>
 
@@ -42,19 +41,18 @@ let inline ( *** ) f g = first f >>> second g
 let inline ( &&& ) f g = arr (fun b -> (b,b)) >>> f *** g
 
 
-
 type AcEither = AcEither with
-    static member inline (?<-) ((f,g)                , _ArrowChoice:AcEither, _:Either<_,_>->_) =          either f g
-    static member inline (?<-) ((Kleisli f,Kleisli g), _ArrowChoice:AcEither, _:Kleisli<_,_>  ) = Kleisli (either f g)
+    static member inline (?<-) ((), _ArrowChoice:AcEither, _:Either<_,_>->_) = fun (        f,        g) ->          either f g
+    static member inline (?<-) ((), _ArrowChoice:AcEither, _:Kleisli<_,_>  ) = fun (Kleisli f,Kleisli g) -> Kleisli (either f g)
 
-let inline (|||) f g : ^R = ( (f,g) ? (AcEither) <- defaultof< ^R> )
+let inline (|||) f g : ^R = (() ? (AcEither) <- defaultof< ^R>) (f,g)
 
 type AcMerge = AcMerge with
-    static member inline (?<-) ( (f,g)                , _ArrowChoice:AcMerge, _:_->Either<_,_>) = (Left << f) ||| (Right << g)
-    static member inline (?<-) ((Kleisli f, Kleisli g), _ArrowChoice:AcMerge, _:Kleisli<_,_>  ) =
+    static member inline (?<-) ((), _ArrowChoice:AcMerge, _:_->Either<_,_>) = fun (        f,         g) -> (Left << f) ||| (Right << g)
+    static member inline (?<-) ((), _ArrowChoice:AcMerge, _:Kleisli<_,_>  ) = fun (Kleisli f, Kleisli g) ->
         Kleisli (f >=> (return' <<< Left)) ||| Kleisli (g >=> (return' <<< Right))
 
-let inline (+++) f g : ^R = (f,g) ? (AcMerge) <- defaultof< ^R>
+let inline (+++) f g : ^R = (() ? (AcMerge) <- defaultof< ^R>) (f,g)
 
 
 type AcLeft = AcLeft with
