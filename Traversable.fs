@@ -5,15 +5,15 @@ open Control.Applicative
 open Data.Foldable
 
 type Traverse = Traverse with
-    static member inline (?<-) (f, _Traversable:Traverse, t:Maybe<_>) =
+    static member inline (?<-) ((), _Traversable:Traverse, t:Maybe<_>) = fun f ->
         match t with
         | Nothing -> pure' Nothing
         | Just x  -> fmap  Just (f x)
      
-    static member inline (?<-) (f, _Traversable:Traverse, t:List<_> ) =
+    static member inline (?<-) ((), _Traversable:Traverse, t:List<_> ) = fun f ->
         let cons x y = x :: y
         let cons_f x ys = fmap cons (f x) <*> ys
         (foldr cons_f (pure' [] )) t
 
-let inline traverse f t = f ? (Traverse) <- t
+let inline traverse f t = (() ? (Traverse) <- t) f
 let inline sequenceA  x = traverse id x
