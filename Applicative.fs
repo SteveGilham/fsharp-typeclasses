@@ -8,37 +8,37 @@ type Applicative = Applicative with
     static member inline ap  f x = ap f x
 
 type Pure = Pure with
-    static member (?<-) (_, _Applicative:Pure, _:Maybe<'a>   ) = fun (x:'a) -> Applicative.pure' x :Maybe<'a>
-    static member (?<-) (_, _Applicative:Pure, _:List<'a>    ) = fun (x:'a) -> Applicative.pure' x :List<'a> 
-    static member (?<-) (_, _Applicative:Pure, _:IO<'a>      ) = fun (x:'a) -> Applicative.pure' x :IO<'a>   
-    static member (?<-) (_, _Applicative:Pure, _:'r -> 'a    ) = const':'a  -> 'r -> _
-    static member (?<-) (_, _Applicative:Pure, _:Either<'e,_>) = fun (x:'a) -> Applicative.pure' x :Either<'e,_>
+    static member (?<-) (_Applicative:Pure, _:Maybe<'a>   , _) = fun (x:'a) -> Applicative.pure' x :Maybe<'a>
+    static member (?<-) (_Applicative:Pure, _:List<'a>    , _) = fun (x:'a) -> Applicative.pure' x :List<'a> 
+    static member (?<-) (_Applicative:Pure, _:IO<'a>      , _) = fun (x:'a) -> Applicative.pure' x :IO<'a>   
+    static member (?<-) (_Applicative:Pure, _:'r -> 'a    , _) = const':'a  -> 'r -> _
+    static member (?<-) (_Applicative:Pure, _:Either<'e,_>, _) = fun (x:'a) -> Applicative.pure' x :Either<'e,_>
 
-let inline pure' x : ^R = (() ? (Pure) <- defaultof< ^R> ) x
+let inline pure' x : ^R = (Pure ? (defaultof< ^R>) <- ()) x
 
 
 type Ap = Ap with
-    static member (?<-) (f:Maybe<_>    , _Applicative:Ap, x:Maybe<_>    ) = Applicative.ap f x
-    static member (?<-) (f:List<_>     , _Applicative:Ap, x:List<_>     ) = Applicative.ap f x
-    static member (?<-) (f:IO<_>       , _Applicative:Ap, x             ) = Applicative.ap f x
-    static member (?<-) (f:_ -> _      , _Applicative:Ap, g: _ -> _     ) = fun x ->  f x (g x)
-    static member (?<-) (f:Either<'e,_>, _Applicative:Ap, x:Either<'e,_>) = Applicative.ap f x
+    static member (?<-) (_Applicative:Ap, f:Maybe<_>    , x:Maybe<_>    ) = Applicative.ap f x
+    static member (?<-) (_Applicative:Ap, f:List<_>     , x:List<_>     ) = Applicative.ap f x
+    static member (?<-) (_Applicative:Ap, f:IO<_>       , x             ) = Applicative.ap f x
+    static member (?<-) (_Applicative:Ap, f:_ -> _      , g: _ -> _     ) = fun x ->  f x (g x)
+    static member (?<-) (_Applicative:Ap, f:Either<'e,_>, x:Either<'e,_>) = Applicative.ap f x
 
-let inline (<*>) (x:'a) (y:'b) : 'c = x ? (Ap) <- y
+let inline (<*>) (x:'a) (y:'b) : 'c = Ap ? (x) <- y
 
 
 type Empty = Empty with
-    static member (?<-) (_, _Alternative:Empty, _:Maybe<'a>) = Nothing
-    static member (?<-) (_, _Alternative:Empty, _:List<'a> ) = []
+    static member (?<-) (_Alternative:Empty, _:Maybe<'a>, _) = Nothing
+    static member (?<-) (_Alternative:Empty, _:List<'a> , _) = []
 
-let inline empty() : ^R = () ? (Empty) <- defaultof< ^R>
+let inline empty() : ^R = Empty ? (defaultof< ^R>) <- ()
 
 
 type Append = Append with    
-    static member (?<-) (x:Maybe<_>, _Alternative:Append, y) = match x with | Nothing -> y | xs -> xs
-    static member (?<-) (x:List<_> , _Alternative:Append, y) = x ++ y
+    static member (?<-) (_Alternative:Append, x:Maybe<_>, y) = match x with | Nothing -> y | xs -> xs
+    static member (?<-) (_Alternative:Append, x:List<_> , y) = x ++ y
     
-let inline (<|>) (x:'a) (y:'a) : 'a = x ? (Append) <- y
+let inline (<|>) (x:'a) (y:'a) : 'a = Append ? (x) <- y
 
 
 
@@ -51,6 +51,6 @@ let inline (<**>)   x   = x |> liftA2 (|>)
 let inline optional v = Just <<|> v <|> pure' Nothing
 
 type ZipList<'s> = ZipList of 's seq with
-    static member (?<-) (_        , _Functor    :Fmap,   ZipList x  ) = fun f -> ZipList (Seq.map f x)
-    static member (?<-) (_        , _Applicative:Pure, _:ZipList<'a>) = fun (x:'a) -> ZipList (Seq.initInfinite (const' x))
-    static member (?<-) (ZipList f, _Applicative:Ap  ,   ZipList x  ) = ZipList (Seq.zip f x |> Seq.map (fun (f,x) -> f x))
+    static member (?<-) (_Functor    :Fmap,   ZipList x  ,       _) = fun f -> ZipList (Seq.map f x)
+    static member (?<-) (_Applicative:Pure, _:ZipList<'a>,       _) = fun (x:'a) -> ZipList (Seq.initInfinite (const' x))
+    static member (?<-) (_Applicative:Ap  ,   ZipList f, ZipList x) = ZipList (Seq.zip f x |> Seq.map (fun (f,x) -> f x))

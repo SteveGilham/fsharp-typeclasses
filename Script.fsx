@@ -77,7 +77,7 @@ type Tree<'a> =
         | Tree(x,t1,t2) -> Tree(f x, Tree.map f t1, Tree.map f t2)
 
 // add instance for Functor class
-    static member (?<-) (_    , _Functor:Fmap, x:Tree<_>) = fun f -> Tree.map f x
+    static member (?<-) (_Functor:Fmap, x:Tree<_>, _) = fun f -> Tree.map f x
 
 let myTree = Tree(6, Tree(2, Leaf(1), Leaf(3)), Leaf(9))
 let mappedTree = fmap fTimes2minus3 myTree
@@ -144,23 +144,25 @@ let allCombinations = sequence [!"abc"; !"12"]
 open Control.Arrow
 
 let r5:List<_>  = (runKleisli (id'())) 5
-let k = Kleisli (fun y -> [y;y*2;y*3]) <<< Kleisli ( fun x -> [ x + 3 ; x * 2 ] )
+let k = Kleisli (fun y -> [y; y * 2 ; y * 3]) <<< Kleisli (fun x -> [x + 3; x * 2])
 let r8n16n24n10n20n30 = runKleisli k <| 5
 
-let res3n6n9 = (arr (fun y -> [y;y*2;y*3])) 3
-let resSome2n4n6:option<_> = runKleisli (arr (fun y -> [y;y*2;y*3])) 2
+let res3n6n9 = (arr (fun y -> [y; y * 2 ; y * 3])) 3
+let resSome2n4n6:option<_> = runKleisli (arr (fun y -> [y; y * 2 ; y * 3])) 2
 
 let res500n19 = ( (*) 100) *** ((+) 9)  <| (5,10)
 let res500n14 = ( (*) 100) &&& ((+) 9)  <| 5
+let (res10x13n10x20n15x13n15x20:list<_>) = runKleisli (Kleisli (fun y -> [y * 2; y * 3]) *** Kleisli (fun x -> [x + 3; x *  2] )) (5,10)
+let (res10x8n10x10n15x8n15x10  :list<_>) = runKleisli (Kleisli (fun y -> [y * 2; y * 3]) &&& Kleisli (fun x -> [x + 3; x *  2] )) 5
 
 // Arrow choice
 let resLeft7       = ( (+) 2) +++ ( (*) 10)   <| Left  5
-let res7n50        = runKleisli (Kleisli (fun y -> [y;y*2;y*3]) ||| Kleisli (fun x -> [x + 2; x * 10] )) (Right 5)
-let resLeft5n10n15 = runKleisli (Kleisli (fun y -> [y;y*2;y*3]) +++ Kleisli (fun x -> [x + 3; x *  2] )) (Left  5)
+let res7n50        = runKleisli (Kleisli (fun y -> [y; y * 2 ; y * 3]) ||| Kleisli (fun x -> [x + 2; x * 10] )) (Right 5)
+let resLeft5n10n15 = runKleisli (Kleisli (fun y -> [y; y * 2 ; y * 3]) +++ Kleisli (fun x -> [x + 3; x *  2] )) (Left  5)
 
 //Arrow Apply
 let res7      = app() ( (+) 3 , 4)
-let res4n8n12 = runKleisli (app()) (Kleisli (fun y -> [y;y*2;y*3]) , 4)
+let res4n8n12 = runKleisli (app()) (Kleisli (fun y -> [y; y * 2 ; y * 3]) , 4)
 
 
 // Applicative functors
@@ -198,14 +200,14 @@ module FoldableTree =
         | Node of (Tree<'a>) * 'a * (Tree<'a>)
 
         // add instance for Foldable class
-        static member inline (?<-) (_, _Foldable:FoldMap, t:Tree<_>) =
+        static member inline (?<-) (_Foldable:FoldMap, t:Tree<_>, _) =
             let rec _foldMap x f =
                 match x with
                 | Empty        -> mempty()
                 | Leaf n       -> f n
                 | Node (l,k,r) -> mappend (_foldMap l f) (mappend (f k) (_foldMap r f) )
             _foldMap t
-        static member inline (?<-) (_, _Foldable:Foldr, x:Tree<_>) = fun (f,z) -> Foldable.foldr f z x
+        static member inline (?<-) (_Foldable:Foldr, x:Tree<_>, _) = fun (f,z) -> Foldable.foldr f z x
     
     let myTree = Node (Node (Leaf(1), 6, Leaf(3)), 2 , Leaf(9))
     let resSum21      = foldMap Sum     myTree
