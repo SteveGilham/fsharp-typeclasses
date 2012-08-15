@@ -8,6 +8,8 @@ let const' k _ = k
 let (</) = (|>)
 let (/>) = flip
 let (++) = (@)
+let (==) = (=)
+let (=/) x y = not (x = y)
 
 type DeReference = DeReference with
     static member (?<-) (_, DeReference, a:'a ref) = !a
@@ -73,13 +75,13 @@ let inline abs (x:'Num) :'Num = () ? (Abs) <- x
 type Signum = Signum with
     static member inline (?<-) (_,      Signum, _:^t when ^t: null and ^t: struct) = id
     static member inline (?<-) (_, _Num:Signum, x:^t        ) = fromInteger (bigint (sign x)) :^t
-    static member        (?<-) (_, _Num:Signum, x:byte      ) = if x = 0uy then 0uy else 1uy
-    static member        (?<-) (_, _Num:Signum, x:uint16    ) = if x = 0us then 0us else 1us
-    static member        (?<-) (_, _Num:Signum, x:uint32    ) = if x = 0u  then 0u  else 1u
-    static member        (?<-) (_, _Num:Signum, x:uint64    ) = if x = 0UL then 0UL else 1UL
-    static member        (?<-) (_, _Num:Signum, x:unativeint) = if x = 0un then 0un else 1un
+    static member        (?<-) (_, _Num:Signum, x:byte      ) = if x == 0uy then 0uy else 1uy
+    static member        (?<-) (_, _Num:Signum, x:uint16    ) = if x == 0us then 0us else 1us
+    static member        (?<-) (_, _Num:Signum, x:uint32    ) = if x == 0u  then 0u  else 1u
+    static member        (?<-) (_, _Num:Signum, x:uint64    ) = if x == 0UL then 0UL else 1UL
+    static member        (?<-) (_, _Num:Signum, x:unativeint) = if x == 0un then 0un else 1un
     static member        (?<-) (_, _Num:Signum, x:Complex   ) =
-        if x.Magnitude = 0.0 then Complex.Zero
+        if x.Magnitude == 0.0 then Complex.Zero
         else Complex(x.Real / x.Magnitude, x.Imaginary / x.Magnitude)
    
 let inline signum (x:'Num) :'Num = () ? (Signum) <- x
@@ -165,7 +167,7 @@ module Ratio =
     let inline (%) (a:'Integral) (b:'Integral) :Ratio<'Integral> =
         whenIntegral a
         let zero = 0G
-        if b = zero then failwith "Ratio.%: zero denominator"
+        if b == zero then failwith "Ratio.%: zero denominator"
         let (a,b) = if b < zero then (negate a, negate b) else (a, b)
         let gcd = gcd a b
         Ratio (a </quot/> gcd, b </quot/> gcd)
@@ -213,7 +215,7 @@ let inline recip x :'Fractional = 1G / x
 
 let inline ( **^ ) (x:'Num) (n:'Integral)  = 
     whenIntegral n
-    let rec f a b n = if n = 0G then a else f (b * a) b (n - 1G)
+    let rec f a b n = if n == 0G then a else f (b * a) b (n - 1G)
     if (n < 0G) then failwith "Negative exponent" else f 1G x n
 
 let inline ( **^^ ) (x:'Fractional) (n:'Integral) = if n >= 0G then x**^n else recip (x**^(negate n))

@@ -127,14 +127,14 @@ let pythags = do'{
   let! z = [1..50]
   let! x = [1..z]
   let! y = [x..z]
-  do! guard (x*x + y*y = z*z)
+  do! guard (x*x + y*y == z*z)
   return (x, y, z)}
 
 let pythags' = doPlus{
   let! z = [1..50]
   let! x = [1..z]
   let! y = [x..z]
-  if (x*x + y*y = z*z) then return (x, y, z)}
+  if (x*x + y*y == z*z) then return (x, y, z)}
 
 let allCombinations = sequence [!"abc"; !"12"]
 
