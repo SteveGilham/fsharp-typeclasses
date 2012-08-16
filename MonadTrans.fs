@@ -21,7 +21,7 @@ module MaybeT =
                     | Nothing    -> return' Nothing
                     | Just value -> runMaybeT <| f value}
 
-        static member inline (?<-) (_Applicative:Ap   , f:MaybeT<_->_>, _:MaybeT< ^b>) = fun x -> ap f x
+        static member inline (?<-) (_Applicative:Ap   , x:MaybeT<_->_>, _:MaybeT< ^b>) = fun (f:MaybeT<_->_>) -> ap f x
         static member inline (?<-) (_MonadPlus  :Mzero, _:MaybeT<_>,       _) = MaybeT (return' Nothing)
         static member inline (?<-) (_MonadPlus  :Mplus,   MaybeT x, MaybeT y) = MaybeT <| do' {
                 let! maybe_value = x
@@ -43,7 +43,7 @@ module ListT =
         static member inline (?<-) (_Monad:Bind    , ListT x, _:ListT< ^b>) = fun (k: ^a -> ^b ListT) -> 
             ListT (x >>= mapM(runListT << k)  >>= (concat >> return'))
 
-        static member inline (?<-) (_Applicative:Ap   , f:ListT<_->_>, _:ListT< ^b>) = fun x -> ap f x
+        static member inline (?<-) (_Applicative:Ap   , x:ListT<_->_>, _:ListT< ^b>) = fun (f:ListT<_->_>) -> ap f x
         static member inline (?<-) (_MonadPlus  :Mzero, _:ListT<_>,      _) = ListT (return' [])
         static member inline (?<-) (_MonadPlus  :Mplus,   ListT x, ListT y) = ListT <| do' {
             let! a = x
