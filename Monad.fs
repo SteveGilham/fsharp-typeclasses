@@ -7,7 +7,7 @@ type Mzero = Mzero with
     static member (?<-) (_MonadPlus:Mzero, _:Maybe<'a>, _) = Nothing
     static member (?<-) (_MonadPlus:Mzero, _:List<'a> , _) = []
 
-let inline mzero () : ^R = Mzero ? (defaultof< ^R>) <- ()
+let inline mzero () : 'R = Mzero ? (defaultof<'R>) <- ()
 
 type Mplus = Mplus with
     static member (?<-) (_MonadPlus:Mplus, x:option<_>, y) = match x with | Nothing -> y | xs -> xs
@@ -32,8 +32,8 @@ let doPlus = new DoPlusNotationBuilder()
 
 
 let inline sequence ms =
-    let k m m' = m >>= fun (x:'a) -> m' >>= fun xs -> (return' :list<'a> -> ^M) (List.Cons(x,xs))
-    List.foldBack k ms ((return' :list<'a> -> ^M) [])
+    let k m m' = m >>= fun (x:'a) -> m' >>= fun xs -> (return' :list<'a> -> 'M) (List.Cons(x,xs))
+    List.foldBack k ms ((return' :list<'a> -> 'M) [])
 
 let inline mapM f as' = sequence (List.map f as')
 

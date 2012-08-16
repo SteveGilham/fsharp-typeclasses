@@ -15,5 +15,5 @@ type Traverse = Traverse with
         let cons_f x ys = fmap cons (f x) <*> ys
         (foldr cons_f (pure' [] )) t
 
-let inline traverse f t : ^R = (Traverse ? (t) <- defaultof< ^R>) f
+let inline traverse f t : 'R = (Traverse ? (t) <- defaultof<'R>) f
 let inline sequenceA  x = traverse id x

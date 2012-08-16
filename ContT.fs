@@ -4,11 +4,11 @@ open Prelude
 open Control.Monad.Cont
 open Control.Monad.Trans
 
-type ContT< ^rma> = ContT of ^rma with
+type ContT< 'Rma> = ContT of 'Rma with
     static member inline (?<-) (_Functor:Fmap,   ContT m, _) = fun f -> ContT(fun c -> m (c << f))
 
 let inline runContT (ContT x) = x
-type ContT< ^rma> with
+type ContT< 'Rma> with
     static member inline (?<-) (_Monad:Return, _:ContT<_>, _         ) = fun a -> ContT((|>) a)
     static member inline (?<-) (_Monad:Bind  ,   ContT m , _:ContT<_>) = fun k -> ContT(fun c -> m (fun a -> runContT(k a) c))
 

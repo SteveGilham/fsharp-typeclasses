@@ -10,7 +10,7 @@ type Mempty = Mempty with
     static member        (?<-) (_Monoid:Mempty, _:Ordering , _) = EQ
     static member        (?<-) (_Monoid:Mempty, _:unit     , _) = ()
 
-let inline mempty() : ^R = Mempty ? (defaultof< ^R>) <- ()
+let inline mempty() : 'R = Mempty ? (defaultof<'R>) <- ()
 
 type Mempty with static member inline (?<-)  (_Monoid:Mempty, _: 'a*'b         , _) =
                     (mempty(),mempty()                           ): 'a*'b

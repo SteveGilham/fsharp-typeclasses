@@ -5,13 +5,13 @@ open Control.Monad.Base
 open Control.Monad.Reader
 open Control.Monad.Trans
 
-type ReaderT< ^r, ^m> = ReaderT of (^r -> ^m) with
+type ReaderT< 'R, 'm> = ReaderT of ('R -> 'm) with
     static member inline (?<-) (_Functor:Fmap  , ReaderT m, _) = fun f -> ReaderT <| fun r -> do'{
         let! a = m r
         return (f a)}
 
 let inline runReaderT (ReaderT x) = x
-type ReaderT< ^r, ^m> with
+type ReaderT< 'R, 'm> with
     static member inline (?<-) (_Monad:Return, _:ReaderT<_,_>,         _) = fun a -> ReaderT <| fun _ -> return' a
     static member inline (?<-) (_Monad:Bind  , ReaderT m, _:ReaderT<_,_>) = fun k -> ReaderT <| fun r -> do'{
         let! a = m r

@@ -5,13 +5,13 @@ open Control.Monad.Base
 open Control.Monad.State
 open Control.Monad.Trans
 
-type StateT< ^s, ^m> = StateT of (^s -> ^m) with
+type StateT<'s, 'm> = StateT of ('s -> 'm) with
     static member inline (?<-) (_Functor:Fmap  , StateT m, _) = fun f -> StateT <| fun s -> do'{
         let! (x, s') = m s
         return (f x, s')}
 
 let inline runStateT (StateT x) = x
-type StateT< ^s, ^m> with
+type StateT<'s, 'm> with
     static member inline (?<-) (_Monad:Return, _:StateT<_,_>,          _) = fun a -> StateT <| fun s -> return' (a, s)
     static member inline (?<-) (_Monad:Bind  ,   StateT m, _:StateT<_,_>) = fun k -> StateT <| fun s -> do'{
         let! (a, s') = m s

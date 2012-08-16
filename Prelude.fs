@@ -1,6 +1,6 @@
 ﻿module Prelude
 
-let inline defaultof< ^T> = Unchecked.defaultof< ^T>
+let inline defaultof<'T> = Unchecked.defaultof<'T>
 
 let flip f x y = f y x
 let const' k _ = k
@@ -62,7 +62,7 @@ let inline fromInteger (x:Integer) :'Num = (FromInteger ? (defaultof<'Num>) <- (
 
 type Abs = Abs with
     static member inline (?<-) (     Abs, _:^t when ^t: null and ^t: struct, _) = id
-    static member inline (?<-) (_Num:Abs, x:^t        , _) = abs x
+    static member inline (?<-) (_Num:Abs, x:'t        , _) = abs x
     static member        (?<-) (_Num:Abs, x:byte      , _) =     x
     static member        (?<-) (_Num:Abs, x:uint16    , _) =     x
     static member        (?<-) (_Num:Abs, x:uint32    , _) =     x
@@ -74,7 +74,7 @@ let inline abs (x:'Num) :'Num = Abs ? (x) <- ()
 
 type Signum = Signum with
     static member inline (?<-) (     Signum, _:^t when ^t: null and ^t: struct, _) = id
-    static member inline (?<-) (_Num:Signum, x:^t        , _) = fromInteger (bigint (sign x)) :^t
+    static member inline (?<-) (_Num:Signum, x:'t        , _) = fromInteger (bigint (sign x)) :'t
     static member        (?<-) (_Num:Signum, x:byte      , _) = if x == 0uy then 0uy else 1uy
     static member        (?<-) (_Num:Signum, x:uint16    , _) = if x == 0us then 0us else 1us
     static member        (?<-) (_Num:Signum, x:uint32    , _) = if x == 0u  then 0u  else 1u
@@ -92,7 +92,7 @@ let inline (*) (a:'Num) (b:'Num) :'Num = a * b
 
 type Negate = Negate with
     static member inline (?<-) (     Negate, _:^t when ^t: null and ^t: struct, _) = id
-    static member inline (?<-) (_Num:Negate, x:^t        , _) = -x
+    static member inline (?<-) (_Num:Negate, x:'t        , _) = -x
     static member        (?<-) (_Num:Negate, x:byte      , _) = 0uy - x
     static member        (?<-) (_Num:Negate, x:uint16    , _) = 0us - x
     static member        (?<-) (_Num:Negate, x:uint32    , _) = 0u  - x
@@ -243,11 +243,11 @@ let inline truncate (x:'RealFrac) :'Integral = fst <| properFraction x
 
 type ToRational = ToRational with
     static member inline (?<-) (_Real:ToRational, r:Ratio<_>, _) = toInteger (numerator r) % toInteger (denominator r) :Rational
-    static member inline (?<-) (_Real:ToRational, x:^t      , _) =
+    static member inline (?<-) (_Real:ToRational, x:'t      , _) =
         whenFractional x
         let (i:Integer,d) = properFraction x
         (i % 1I) + (truncate (decimal d * 1000000000000000000000000000M) % 1000000000000000000000000000I) :Rational
-    static member inline (?<-) (_Real:ToRational, x:^t      , _) = (toInteger x) % 1I
+    static member inline (?<-) (_Real:ToRational, x:'t      , _) = (toInteger x) % 1I
 
 let inline toRational (x:'Real) :Rational = ToRational ? (x) <- ()
 
@@ -325,7 +325,7 @@ type Return = Return with
     static member (?<-) (_Monad:Return, _: 'r -> 'a    , _) = fun x -> const'    x : 'r -> 'a
     static member (?<-) (_Monad:Return, _:Either<'e,'a>, _) = fun x -> Right     x :Either<'e,'a>
 
-let inline return' x : ^R = (Return ? (defaultof< ^R>) <- ()) x
+let inline return' x : 'R = (Return ? (defaultof<'R>) <- ()) x
 
 type Bind = Bind with
     static member (?<-) (_Monad:Bind, x:Maybe<_>    , _:Maybe<'b>    ) = fun (f:_->Maybe<'b>   ) -> Option.bind  f x
@@ -336,8 +336,8 @@ type Bind = Bind with
                                                                                                     | Left  l -> Left l
                                                                                                     | Right r -> k r
 
-let inline (>>=) x f : ^R = (Bind ? (x) <- defaultof< ^R> ) f
-let inline (=<<) f x : ^R = (Bind ? (x) <- defaultof< ^R> ) f
+let inline (>>=) x f : 'R = (Bind ? (x) <- defaultof<'R> ) f
+let inline (=<<) f x : 'R = (Bind ? (x) <- defaultof<'R> ) f
 
 
 // Do notation ------------------------------------------------------------
