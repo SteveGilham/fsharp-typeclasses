@@ -3,17 +3,17 @@
 open Prelude
 open Data.Monoid
 
-type Writer<'w,'a> = Writer of ('a * 'w) with
-    static member        (?<-) (_Functor:Fmap, Writer(a,w), _) = fun f -> Writer(f a, w)
+type Writer<'W,'A> = Writer of ('A * 'W) with
+    static member        (?<-) (_Functor:Fmap,   Writer(a,w),                _) = fun f -> Writer(f a, w) :Writer<'w,_>
 
-let runWriter (Writer x) = x
-type Writer<'w,'a> with
-    static member inline (?<-) (_Monad:Return, _:Writer<'s,'a>,            _) = fun a -> Writer(a, mempty())                                       :Writer<'s,'a>
-    static member inline (?<-) (_Monad:Bind  , Writer(a, w), _:Writer<'s,'b>) = fun k -> Writer(let (b, w') = runWriter(k a) in (b, mappend w w')) :Writer<'s,'b>
+let runWriter (Writer x) = x :_*'w
+type Writer<'W,'A> with
+    static member inline (?<-) (_Monad:Return, _:Writer<'w,'a>,              _) = fun a -> Writer(a, mempty())                                       :Writer<'w,'a>
+    static member inline (?<-) (_Monad:Bind  ,   Writer(a, w), _:Writer<'w,'b>) = fun k -> Writer(let (b, w') = runWriter(k a) in (b, mappend w w')) :Writer<'w,'b>
 
-let mapWriter f (Writer m)   = Writer(f m)
-let execWriter  (Writer m) s = snd m
+let mapWriter f (Writer m:Writer<'w1,_>)   = Writer(f m) :Writer<'w2,_>
+let execWriter  (Writer m:Writer<'w,_> ) s = snd m
 
-let tell              w       = Writer((),     w)
-let listen(Writer (a, w))     = Writer((a, w), w)
-let pass  (Writer((a, f), w)) = Writer( a,   f w)
+let tell              w       = Writer((),     w)        :Writer<'w,_>
+let listen(Writer (a, w))     = Writer((a, w), w)        :Writer<'w,_>
+let pass  (Writer((a, f), w)) = Writer( a,   f w)        :Writer<'w,_>

@@ -1,17 +1,17 @@
 ﻿module Control.Monad.State
 
 open Prelude
-type State<'s,'a> = State of ('s->('a * 's)) with
-    static member (?<-) (_Functor:Fmap  ,   State m, _) = fun f -> State(fun s -> let (a, s') = m s in (f a, s'))
+type State<'S,'A> = State of ('S->('A * 'S)) with
+    static member (?<-) (_Functor:Fmap  , State m,              _) = fun f -> State(fun s -> let (a, s') = m s in (f a, s')) :State<'s,_>
 
-let runState (State x) = x
-type State<'s,'a> with
+let runState (State x) = x :'s->_
+type State<'S,'A> with
     static member (?<-) (_Monad:Return, _:State<'s,'a>,         _) = fun a -> State(fun s -> (a, s))                                :State<'s,'a>
     static member (?<-) (_Monad:Bind  ,   State m, _:State<'s,'b>) = fun k -> State(fun s -> let (a, s') = m s in runState(k a) s') :State<'s,'b>
 
-let mapState  f (State m)  = State(f << m)
-let withState f (State m)  = State(m << f)
-let evalState (State sa) s = fst(sa s)
-let execState (State sa) s = snd(sa s)
-let get   = State (fun s -> (s , s))
-let put x = State (fun _ -> ((), x))
+let mapState  f (State m)  = State(f << m) :State<'s,_>
+let withState f (State m)  = State(m << f) :State<'s,_>
+let evalState (State sa) (s:'s) = fst(sa s)
+let execState (State sa) (s:'s) = snd(sa s)
+let get   = State (fun s -> (s , s))       :State<'s,_>
+let put x = State (fun _ -> ((), x))       :State<'s,_>
