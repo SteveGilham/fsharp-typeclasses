@@ -316,4 +316,5 @@ let printReaderContent = do' {
 let readerTMain = do'{
     return! (runReaderT printReaderContent "Some Content") }
 
+let _ = runIO readerTMain
 // try -> runIO readerTMain ;;
