@@ -76,7 +76,7 @@ type Tree<'a> =
         | Leaf x -> Leaf (f x)
         | Tree(x,t1,t2) -> Tree(f x, Tree.map f t1, Tree.map f t2)
 
-// add instance for Functor class
+// add ìnstance for Functor class
     static member (?<-) (_Functor:Fmap, x:Tree<_>, _) = fun f -> Tree.map f x
 
 let myTree = Tree(6, Tree(2, Leaf(1), Leaf(3)), Leaf(9))
@@ -183,6 +183,7 @@ let res508 = (fmap (+) ((+) 3 ) <*> (*) 100) 5
 //ZipList
 let res9n5   = fmap ((+) 1) (ZipList(seq [8;4]))
 let res18n24 = pure' (+) <*> ZipList(seq [8;4]) <*> ZipList(seq [10;20])
+let res6n7n8 = pure' (+) <*> pure' 5G <*> ZipList [1;2;3]
 
 
 // Foldable
@@ -237,8 +238,35 @@ let res654      = sequenceA [ (+)3 ; (+)2 ; (+) 1] 3
 let resCombined = sequenceA [ [1;2;3] ; [4;5;6]  ]
 let get3strings = sequenceA [getLine;getLine;getLine]
 
+
 #load "Cont.fs"
 open Control.Monad.Cont
+
+let square_C   x = return' (x * x)
+let addThree_C x = return' (x + 3)
+
+let res19 = runCont (square_C 4 >>= addThree_C) id
+
+let inline add_cont x y  = return' (x + y)
+let inline square_cont x = return' (sqrt x)
+
+let pythagoras_cont x y = do' {
+    let! x_squared = square_cont x
+    let! y_squared = square_cont y
+    let! sum_of_squares = add_cont x_squared y_squared
+    return sum_of_squares}
+
+let resPyth373205 = runCont (pythagoras_cont 3. 4.) string
+
+let foo n =
+  callCC <| fun k -> do' {
+    let n' = (n * n) + 3
+    do! when' (n' > 20) <| k "over twenty"
+    return (string <| n' - 4) }
+
+let res''3''  = runCont (foo  2) id
+let resOver20 = runCont (foo 16) id
+
 
 #load "Reader.fs"
 open Control.Monad.Reader
@@ -253,11 +281,12 @@ let readerMain = do' {
     let s = "12345"
     let modifiedLen = runReader calculateModifiedContentLen s
     let len = runReader calculateContentLen s
-    do! putStrLn <| "Modified 's' length: " + (string modifiedLen)
+    do!     putStrLn <| "Modified 's' length: " + (string modifiedLen)
     return! putStrLn <| "Original 's' length: " + (string len)
     }
 
 // try -> runIO readerMain ;;
+
 
 #load "State.fs"
 open Control.Monad.State
@@ -267,13 +296,16 @@ let x1 = runState (return' 'X') 1
 let xf:State<int,_> = return' 'X'
 let r11    = runState get 1
 let rUnit5 = runState (put 5) 1
+
 let rX5    = runState (do' { 
     do! put 5
     return 'X' }) 1
+
 let postincrement = do' {
     let! x = get
     do! put (x+1)
     return x }
+
 let r12 = runState postincrement 1
 
 let tick :State<_,_> = do'{
@@ -296,17 +328,85 @@ open Control.Monad.Trans
 open Control.Monad.Trans.MaybeT
 open Control.Monad.Trans.ListT
 
+let maybeT4x6xN = fmap ((+) 2) (MaybeT [Just 2; Just 4; Nothing])
 let maybeT = MaybeT [Some 2; Some 4] >>= fun x -> MaybeT [Some x; Some (x+10)]
+
+let listT2x4x6  = fmap ((+) 2) (ListT (Just [2; 4; 6]))
 let listT  = ListT  (Some [2;4]    ) >>= fun x -> ListT  (Some [x; x+10]     )
 
 let apMaybeT = ap (MaybeT [Just ((+) 3)] ) ( MaybeT [Just  3 ] )
 let apListT  = ap (ListT  (Just [(+) 3]) ) ( ListT  (Just [3]) )
 
+let resListTSome2547 = (ListT (Some [2;4] )) >>=  (fun x -> ListT ( Some [x;x+3G]) )
+
 let getAtLeast8Chars:MaybeT<_> =  lift getLine >>= fun s -> (guard (String.length s >= 8) ) >>= fun _ -> return' s
 //try -> runIO <| runMaybeT getAtLeast8Chars
 
+
+let isValid s = String.length s >= 8 && String.exists System.Char.IsLetter s && String.exists System.Char.IsNumber s && String.exists System.Char.IsPunctuation s
+
+let getValidPassword:MaybeT<_> =
+    doPlus {
+        let! s = (lift getLine)        
+        do! guard (isValid s)  // if isValid s then return s
+        return s
+        }
+    
+let askPassword = do' {
+    do! lift <| putStrLn "Insert your new password:"
+    let! value = getValidPassword
+    do! lift <| putStrLn "Storing in database..."
+    return value
+    }
+
+let askPass = runMaybeT askPassword
+
+//try -> runIO askPass
+
+let resLiftIOMaybeT = liftIO getLine : MaybeT<IO<_>>
+
+
+#load "ContT.fs"
+open Control.Monad.ContT
+
+// from http://en.wikibooks.org/wiki/Haskell/Continuation_passing_style
+
+//askString :: (String -> ContT () IO String) -> ContT () IO String
+let askString next = do' {
+  do! (liftIO <| putStrLn "Please enter a string") 
+  let! s = liftIO <| getLine
+  return! next s}
+
+//reportResult :: String -> IO ()
+let reportResult s = do' {
+  return! putStrLn ("You entered: " + s) }
+  
+let mainaction = runContT (callCC askString) reportResult
+//try -> runIO mainaction
+
+
+let show x = '\"' :: x ++ !"\""
+
+let inline bar c s = do' {
+  let! msg = callCC <| fun k -> do' {
+    let s' = c :: s
+    do! when' (s' == !"hello") <| k !"They say hello."
+    let s'' = show s'
+    return (!"They appear to be saying " ++ s'') }
+  return (length msg) }
+
+let res15'    = runCont            (bar 'h' !"ello")  id
+let resSome15 = runCont (runMaybeT (bar 'h' !"ello")) id
+let resList29 = runCont (runListT  (bar 'h' !"i"   )) id
+
+
+let resLiftIOContT = liftIO getLine : ContT<IO<string>,_>
+
 #load "ReaderT.fs"
 open Control.Monad.ReaderT
+
+let res15'' = runCont (runReaderT (bar 'h' !"ello") "anything") id
+
 
 // from http://www.haskell.org/ghc/docs/6.10.4/html/libraries/mtl/Control-Monad-Reader.html
 let printReaderContent = do' {
@@ -318,3 +418,69 @@ let readerTMain = do'{
 
 let _ = runIO readerTMain
 // try -> runIO readerTMain ;;
+
+
+#load "StateT.fs"
+open Control.Monad.StateT
+
+// from http://www.haskell.org/haskellwiki/Simple_StateT_use
+#nowarn "0025"  // Incomplete pattern match, list cannot be infinite if F#
+let code  =
+    let inline io (x: IO<_>)  : StateT<_,IO<_>> = liftIO x
+    let pop  = do' {
+        let! (x::xs) = get()
+        do! put xs
+        return x}
+    do' {
+        let! x = pop
+        do! io <| print x
+        let! y = pop
+        do! io <| print y
+        return () }
+
+let main = runStateT code [1..10] >>= fun _ -> return' ()
+
+let resLiftIOStateT = liftIO getLine : StateT<string,IO<_>>
+
+
+#load "WriterT.fs"
+open Control.Monad.WriterT
+
+let toLower (s:char) = s.ToString().ToLower().Chars(0)
+let toUpper (s:char) = s.ToString().ToUpper().Chars(0)
+
+let chncase x = function
+    | true -> ((toLower x), false) 
+    | _    -> ((toUpper x), true)
+
+let logchncase x = function
+    | true -> (((toLower x), "Low "), false)
+    | _    -> (((toUpper x), "Up " ), true)
+                      
+let statecase x = State (logchncase x)
+
+let logstatecase x = WriterT (statecase x)
+
+// runState (runWriterT (logstatecase 'a')) true  -> (char * string) * bool = (('a', "Low "), false)
+// runState (runWriterT (logstatecase 'a')) false -> (char * string) * bool = (('A', "Up "), true)
+
+let logstatecase3 x y z : WriterT<_> =  do' {
+    let! u = logstatecase x
+    let! v = logstatecase y
+    let! w = logstatecase z
+    do! tell "thats all"
+    return [u,v,w]}
+
+//runState (runWriterT (logstatecase3 'a' 'b' 'c')) true  -> ((char * char * char) list * string) * bool = (([('a', 'B', 'c')], "Low Up Low "), false)
+//runState (runWriterT (logstatecase3 'a' 'b' 'c')) false -> ((char * char * char) list * string) * bool = (([('A', 'b', 'C')], "Up Low Up "), true)
+
+let resLiftIOWriterT = liftIO getLine : WriterT<IO<_ * string>>
+
+
+// N-layers Monad Transformer
+
+let res3Layers   = (lift << lift)         getLine : MaybeT<ReaderT<string,_>>
+let res3Layers'  = (lift << lift)         getLine : MaybeT<WriterT<IO<_ * string>>>
+let res3Layers'' = liftIO                 getLine : MaybeT<WriterT<IO<_ * string>>>
+let res4Layers   = (lift << lift << lift) getLine : ListT<MaybeT<WriterT<IO<_ * string>>>>
+// Still doesn't work (but it should)  -> let res4Layers'  = liftIO       getLine : ListT<MaybeT<WriterT<IO<_ * string>>>>
