@@ -23,8 +23,8 @@ type WriterT<'WMa> with
             let! (b, w') = runWriterT (k a)
             return (b, w </mappend/> w')}
 
-    static member inline (?<-) (_MonadPlus:Mzero , _:WriterT<_>, _       ) = WriterT(mzero())
-    static member inline (?<-) (_MonadPlus:Mplus ,   WriterT m, WriterT n) = WriterT(mplus m n)
+    static member inline (?<-) (_MonadPlus:Mzero , _:WriterT<_>, _       ) = fun ()          -> WriterT(mzero())
+    static member inline (?<-) (_MonadPlus:Mplus ,   WriterT m,  _       ) = fun (WriterT n) -> WriterT(mplus m n)
 
     static member inline (?<-) (_MonadWriter:Tell, _:WriterT<_>,           _) = fun w -> WriterT(return' ((), w))
     static member inline (?<-) (_MonadWriter:Listen, WriterT m, _:WriterT<_>) = WriterT <| do'{
@@ -38,16 +38,16 @@ type WriterT<'WMa> with
         let! a = m
         return (a, mempty())}
     
-    static member inline (?<-) (_MonadIO:LiftIO, _:WriterT<'t2>, _) = fun (x: IO<'a2>) -> ((lift ((liftIO x) :'ma2)) :'R2)
+    static member inline (?<-) (_MonadIO:LiftIO    , _:WriterT<_>,         _) = fun (x: IO<_>) -> lift (liftIO x)
 
-    static member inline (?<-) (_MonadCont:CallCC , _:WriterT<Cont<'r,'a*'b>>, _) : (('a->WriterT<Cont<'r,'t>>)->_) -> WriterT<Cont<'r,'a*'b>>= 
+    static member inline (?<-) (_MonadCont:CallCC  , _:WriterT<Cont<'r,'a*'b>>, _) : (('a->WriterT<Cont<'r,'t>>)->_) -> WriterT<Cont<'r,'a*'b>>= 
         fun f -> WriterT (callCC <| fun c -> runWriterT (f (fun a -> WriterT <| c (a, mempty()))))
     
-    static member inline (?<-) (_MonadReader:Ask, _:WriterT<Reader<'a,'a*'b>>,        _) :WriterT<Reader<'a,'a*'b>>       = lift ask
-    static member        (?<-) (_MonadReader:Local, WriterT m, _:WriterT<Reader<'a,'b>>)    :('a->'t)->WriterT<Reader<'a,'b>> = fun f -> WriterT(local f m)
+    static member inline (?<-) (_MonadReader:Ask, _:WriterT<Reader<'a,'a*'b>>,        _) = fun () -> lift ask:WriterT<Reader<'a,'a*'b>>
+    static member        (?<-) (_MonadReader:Local, WriterT m, _:WriterT<Reader<'a,'b>>)    : ('a->'t) -> WriterT<Reader<'a,'b>> = fun f -> WriterT(local f m)
 
-    static member inline (?<-) (_MonadState:Get , _:WriterT<State<'a,'a*'b>>  , _) :      WriterT<State<'a,'a*'b>>   = lift get
-    static member inline (?<-) (_MonadState:Put , _:WriterT<State<'a,unit*'b>>, _) :'a -> WriterT<State<'a,unit*'b>> = lift << put
+    static member inline (?<-) (_MonadState:Get , _:WriterT<State<'a,'a*'b>>  , _) : unit -> WriterT<State<'a,'a*'b>>   = fun () -> lift get
+    static member inline (?<-) (_MonadState:Put , _:WriterT<State<'a,unit*'b>>, _) :'a    -> WriterT<State<'a,unit*'b>> = lift << put
     
 
 let inline mapWriterT f (WriterT m) = WriterT(f m)

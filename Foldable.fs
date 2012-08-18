@@ -8,15 +8,15 @@ type Foldr = Foldr with
 
 
 type Foldable = Foldable with 
-    static member inline foldMap f x = (Foldr ? (x) <- ()) (mappend << f,mempty())
+    static member inline foldMap f x = Inline.instance (Foldr, x) (mappend << f, mempty())
     
 type FoldMap = FoldMap with
-    static member inline (?<-)   (_Foldable:FoldMap, x:Maybe<_>, _) = fun f -> Foldable.foldMap f x
-    static member inline (?<-)   (_Foldable:FoldMap, x:List<_> , _) = fun f -> Foldable.foldMap f x
-    static member inline (?<-)   (_Foldable:FoldMap, x:array<_>, _) = fun f -> Array.foldBack (mappend << f) x (mempty())
+    static member inline (?<-) (_Foldable:FoldMap, x:Maybe<_>, _) = fun f -> Foldable.foldMap f x
+    static member inline (?<-) (_Foldable:FoldMap, x:List<_> , _) = fun f -> Foldable.foldMap f x
+    static member inline (?<-) (_Foldable:FoldMap, x:array<_>, _) = fun f -> Array.foldBack (mappend << f) x (mempty())
 
-let inline foldr (f: 'a -> 'b -> 'b) (z:'b) x : 'b = (Foldr ? (x) <- ()) (f,z)
-let inline foldMap f x = (FoldMap ? (x) <- ()) f
+let inline foldr (f: 'a -> 'b -> 'b) (z:'b) x :'b = Inline.instance (Foldr, x) (f,z)
+let inline foldMap f x = Inline.instance (FoldMap, x) f
 
 
 type Foldable with 
@@ -31,4 +31,4 @@ type Foldl = Foldl with
     static member (?<-) (_Foldable:Foldl, x:List<_> , _) = fun (f,z) -> List.fold               f z x
     static member (?<-) (_Foldable:Foldl, x:array<_>, _) = fun (f,z) -> Foldable.foldl          f z x
 
-let inline foldl (f: 'a -> 'b -> 'a) (z:'a) x : 'a = (Foldl ? (x) <- ()) (f,z)
+let inline foldl (f: 'a -> 'b -> 'a) (z:'a) x :'a = Inline.instance (Foldl, x) (f,z)

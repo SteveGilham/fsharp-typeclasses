@@ -4,16 +4,16 @@ open Prelude
 // MonadPlus class ------------------------------------------------------------
 
 type Mzero = Mzero with
-    static member (?<-) (_MonadPlus:Mzero, _:Maybe<'a>, _) = Nothing
-    static member (?<-) (_MonadPlus:Mzero, _:List<'a> , _) = []
+    static member (?<-) (_MonadPlus:Mzero, _:Maybe<'a>, _) = fun () -> Nothing
+    static member (?<-) (_MonadPlus:Mzero, _:List<'a> , _) = fun () -> []
 
-let inline mzero () : 'R = Mzero ? (defaultof<'R>) <- ()
+let inline mzero () = Inline.instance Mzero ()
 
 type Mplus = Mplus with
-    static member (?<-) (_MonadPlus:Mplus, x:option<_>, y) = match x with | Nothing -> y | xs -> xs
-    static member (?<-) (_MonadPlus:Mplus, x:list<_>  , y) = x ++ y
+    static member (?<-) (_MonadPlus:Mplus, x:Maybe<_>, _) = fun y -> match x with | Nothing -> y | xs -> xs
+    static member (?<-) (_MonadPlus:Mplus, x:List<_> , _) = fun y -> x ++ y
 
-let inline mplus (x:'a) (y:'a) : 'a = Mplus ? (x) <- y
+let inline mplus (x:'a) (y:'a) : 'a = Inline.instance (Mplus, x) y
 
 let inline msum x =
     let foldR f s lst = List.foldBack f lst s

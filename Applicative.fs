@@ -14,9 +14,6 @@ type Pure = Pure with
     static member (?<-) (_Applicative:Pure, _:'r -> 'a     , _) = const':'a  -> 'r -> _
     static member (?<-) (_Applicative:Pure, _:Either<'e,'a>, _) = fun (x:'a) -> Applicative.pure' x :Either<'e,_>
 
-let inline pure' x : 'R = (Pure ? (defaultof<'R>) <- ()) x
-
-
 type Ap = Ap with
     static member (?<-) (_Applicative:Ap, x:Maybe<'a>    , _:Maybe<'b>    ) = fun (f:Maybe<_>    ) -> Applicative.ap f x :Maybe<'b>    
     static member (?<-) (_Applicative:Ap, x:List<'a>     , _:List<'b>     ) = fun (f:List<_>     ) -> Applicative.ap f x :List<'b>     
@@ -24,22 +21,22 @@ type Ap = Ap with
     static member (?<-) (_Applicative:Ap, g: _ -> 'a     , _: 'r -> 'b    ) = fun (f:'r -> _     ) -> fun x -> f x (g x) :'b     
     static member (?<-) (_Applicative:Ap, x:Either<'e,'a>, _:Either<'e,'b>) = fun (f:Either<'e,_>) -> Applicative.ap f x :Either<'e,'b>
 
-let inline (<*>) x y : 'R = (Ap ? (y) <- defaultof<'R>) x
+let inline pure' x   = Inline.instance Pure x
+let inline (<*>) f x = Inline.instance (Ap, x) f
 
 
 type Empty = Empty with
-    static member (?<-) (_Alternative:Empty, _:Maybe<'a>, _) = Nothing
-    static member (?<-) (_Alternative:Empty, _:List<'a> , _) = []
+    static member (?<-) (_Alternative:Empty, _:Maybe<'a>, _) = fun () -> Nothing
+    static member (?<-) (_Alternative:Empty, _:List<'a> , _) = fun () -> []
 
-let inline empty() : 'R = Empty ? (defaultof<'R>) <- ()
+let inline empty() = Inline.instance Empty ()
 
 
 type Append = Append with    
-    static member (?<-) (_Alternative:Append, x:Maybe<_>, y) = match x with | Nothing -> y | xs -> xs
-    static member (?<-) (_Alternative:Append, x:List<_> , y) = x ++ y
+    static member (?<-) (_Alternative:Append, x:Maybe<_>, _) = fun y -> match x with | Nothing -> y | xs -> xs
+    static member (?<-) (_Alternative:Append, x:List<_> , _) = fun y -> x ++ y
     
-let inline (<|>) (x:'a) (y:'a) : 'a = Append ? (x) <- y
-
+let inline (<|>) (x:'a) (y:'a) :'a = Inline.instance (Append, x) y
 
 
 let inline (<<|>) f a   = fmap f a

@@ -483,4 +483,4 @@ let res3Layers   = (lift << lift)         getLine : MaybeT<ReaderT<string,_>>
 let res3Layers'  = (lift << lift)         getLine : MaybeT<WriterT<IO<_ * string>>>
 let res3Layers'' = liftIO                 getLine : MaybeT<WriterT<IO<_ * string>>>
 let res4Layers   = (lift << lift << lift) getLine : ListT<MaybeT<WriterT<IO<_ * string>>>>
-// Still doesn't work (but it should)  -> let res4Layers'  = liftIO       getLine : ListT<MaybeT<WriterT<IO<_ * string>>>>
+let res4Layers'  = liftIO                 getLine : ListT<MaybeT<WriterT<IO<_ * string>>>>
