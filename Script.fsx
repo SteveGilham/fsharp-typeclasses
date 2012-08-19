@@ -1,4 +1,5 @@
-﻿#load "Prelude.fs"
+﻿#r @"lib\InlineHelper.dll"
+#load "Prelude.fs"
 open Prelude
 
 
@@ -77,7 +78,7 @@ type Tree<'a> =
         | Tree(x,t1,t2) -> Tree(f x, Tree.map f t1, Tree.map f t2)
 
 // add ìnstance for Functor class
-    static member (?<-) (_Functor:Fmap, x:Tree<_>, _) = fun f -> Tree.map f x
+    static member instance (_Functor:Fmap, x:Tree<_>, _) = fun f -> Tree.map f x
 
 let myTree = Tree(6, Tree(2, Leaf(1), Leaf(3)), Leaf(9))
 let mappedTree = fmap fTimes2minus3 myTree
@@ -201,14 +202,14 @@ module FoldableTree =
         | Node of (Tree<'a>) * 'a * (Tree<'a>)
 
         // add instance for Foldable class
-        static member inline (?<-) (_Foldable:FoldMap, t:Tree<_>, _) =
+        static member inline instance (_Foldable:FoldMap, t:Tree<_>, _) =
             let rec _foldMap x f =
                 match x with
                 | Empty        -> mempty()
                 | Leaf n       -> f n
                 | Node (l,k,r) -> mappend (_foldMap l f) (mappend (f k) (_foldMap r f) )
             _foldMap t
-        static member inline (?<-) (_Foldable:Foldr, x:Tree<_>, _) = fun (f,z) -> Foldable.foldr f z x
+        static member inline instance (_Foldable:Foldr, x:Tree<_>, _) = fun (f,z) -> Foldable.foldr f z x
     
     let myTree = Node (Node (Leaf(1), 6, Leaf(3)), 2 , Leaf(9))
     let resSum21      = foldMap Sum     myTree

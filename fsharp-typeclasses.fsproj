@@ -53,6 +53,9 @@
     <None Include="Script.fsx" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="InlineHelper">
+      <HintPath>lib\InlineHelper.dll</HintPath>
+    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core" />
     <Reference Include="System" />

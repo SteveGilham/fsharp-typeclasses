@@ -2,12 +2,12 @@
 
 open Prelude
 type Reader<'R,'A> = Reader of ('R->'A) with
-    static member (?<-) (_Functor:Fmap  , Reader m:Reader<'r,'a>, _) = fun (f:_->'b) -> Reader(fun r -> f (m r))
+    static member instance (_Functor:Fmap  , Reader m:Reader<'r,'a>, _) = fun (f:_->'b) -> Reader(fun r -> f (m r))
 
 let runReader (Reader x) = x
 type Reader<'R,'A> with
-    static member (?<-) (_Monad:Return, _:Reader<'r,'a>,          _) = fun a -> Reader(fun _ -> a)                    :Reader<'r,'a>
-    static member (?<-) (_Monad:Bind  ,   Reader m, _:Reader<'r,'b>) = fun k -> Reader(fun r -> runReader(k (m r)) r) :Reader<'r,'b>
+    static member instance (_Monad:Return, _:Reader<'r,'a>            ) = fun a -> Reader(fun _ -> a)                    :Reader<'r,'a>
+    static member instance (_Monad:Bind  ,   Reader m, _:Reader<'r,'b>) = fun k -> Reader(fun r -> runReader(k (m r)) r) :Reader<'r,'b>
 
 
 let mapReader  f (Reader m) = Reader(f << m) :Reader<'r,_>
