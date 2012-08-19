@@ -184,7 +184,7 @@ let res508 = (fmap (+) ((+) 3 ) <*> (*) 100) 5
 let res9n5   = fmap ((+) 1) (ZipList(seq [8;4]))
 let res18n24 = pure' (+) <*> ZipList(seq [8;4]) <*> ZipList(seq [10;20])
 let res6n7n8 = pure' (+) <*> pure' 5G <*> ZipList [1;2;3]
-
+let res18n14 = pure' (+) <*> ZipList(seq [8;4]) <*> (pure' 10 : ZipList<_>) //requires type annotation
 
 // Foldable
 #load "Foldable.fs"

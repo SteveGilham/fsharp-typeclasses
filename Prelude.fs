@@ -341,11 +341,11 @@ type Bind = Bind with
     static member (?<-) (_Monad:Bind, x:IO<_>       , _:IO<'b>       ) = fun (f:_->IO<'b>      ) -> primbindIO x f
     static member (?<-) (_Monad:Bind, f:'r->'a      , _:'r->'b       ) = fun (k:_->_->'b) r      -> k (f r) r
     static member (?<-) (_Monad:Bind, x:Either<'e,_>, _:Either<'e,'b>) = fun (k:_->Either<_,'b>) -> match x with
-                                                                                                       | Left  l -> Left l
-                                                                                                       | Right r -> k r
+                                                                                                    | Left  l -> Left l
+                                                                                                    | Right r -> k r
                                                                                                        
-let inline (>>=) x f = Inline.instance (Bind, x) f
-let inline (=<<) f x = Inline.instance (Bind, x) f
+let inline (>>=) x (f:_->'R) : 'R = Inline.instance (Bind, x) f
+let inline (=<<) (f:_->'R) x : 'R = Inline.instance (Bind, x) f
 
 
 // Do notation ------------------------------------------------------------
