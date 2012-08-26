@@ -187,6 +187,39 @@ let res18n24 = pure' (+) <*> ZipList(seq [8;4]) <*> ZipList(seq [10;20])
 let res6n7n8 = pure' (+) <*> pure' 5G <*> ZipList [1;2;3]
 let res18n14 = pure' (+) <*> ZipList(seq [8;4]) <*> pure' 10
 
+// Idiom brackets from http://www.haskell.org/haskellwiki/Idiom_brackets
+type Ii = Ii
+type Ji = Ji
+type J = J
+type Idiomatic = Idiomatic with
+    static member inline ($) (Idiomatic, si) = fun sfi x -> (Idiomatic $ x) (sfi <*> si)
+    static member        ($) (Idiomatic, Ii) = id
+let inline idiomatic a b = (Idiomatic $ b) a
+let inline iI x = (idiomatic << pure') x
+
+let res3n4''  = iI ((+) 2) [1;2] Ii
+let res3n4''' = iI (+) (pure' 2) [1;2] Ii
+let res18n24' = iI (+) (ZipList(seq [8;4])) (ZipList(seq [10;20])) Ii
+let res6n7n8' = iI (+) (pure' 5G          ) (ZipList [1;2;3]     ) Ii
+let res18n14' = iI (+) (ZipList(seq [8;4])) (pure' 10            ) Ii
+
+let inline join x =  x >>= id
+type Idiomatic with static member inline ($) (Idiomatic, Ji) = fun xii -> join xii
+
+let safeDiv x y = if y == 0 then Nothing else Just (x </div/> y)
+let resJust3    = join (iI safeDiv (Just 6) (Just 2) Ii)
+let resJust3'   =       iI safeDiv (Just 6) (Just 2) Ji
+
+let safeDivBy y = if y == 0 then Nothing else Just (fun x -> x </div/> y)
+let resJust2  = join (pure' safeDivBy  <*> Just 4G) <*> Just 8G
+let resJust2' = join (   iI safeDivBy (Just 4G) Ii) <*> Just 8G
+
+type Idiomatic with static member inline ($) (Idiomatic, J ) = fun fii x -> (Idiomatic $ x) (join fii)
+
+let resJust2'' = iI safeDivBy (Just 4G) J (Just 8G) Ii
+let resNothing = iI safeDivBy (Just 0G) J (Just 8G) Ii
+
+
 // Foldable
 #load "Foldable.fs"
 
