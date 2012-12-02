@@ -280,6 +280,7 @@ let square_C   x = return' (x * x)
 let addThree_C x = return' (x + 3)
 
 let res19 = runCont (square_C 4 >>= addThree_C) id
+let res20 = runCont (pure' (+) <*> square_C 2 <*> square_C 4) id
 
 let inline add_cont x y  = return' (x + y)
 let inline square_cont x = return' (sqrt x)
