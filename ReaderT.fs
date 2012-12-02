@@ -29,7 +29,7 @@ type ReaderT<'R,'Ma> with
     static member inline instance (_MonadReader:Ask, _:ReaderT<'r,'a>      ) = fun () -> ReaderT return' :ReaderT<'r,'a>
     static member inline instance (_MonadReader:Local, ReaderT m, _:ReaderT<_,_>) = fun f  -> ReaderT(fun r -> m (f r))
 
-    static member inline instance (_MonadIO:LiftIO,  _:ReaderT<_,_>        ) = fun (x: IO<_>) -> lift (liftIO x)
+    static member inline instance (_MonadIO:LiftAsync,  _:ReaderT<_,_>        ) = fun (x: Async<_>) -> lift (liftAsync x)
 
     static member instance (_MonadCont :CallCC , _:ReaderT<'r,Cont<'c,'a>> ) : (('a -> ReaderT<'t,Cont<'c,'u>>) -> ReaderT<'r,Cont<'c,'a>>) -> ReaderT<'r,Cont<'c,'a>> =
         fun f -> ReaderT(fun r -> callCC <| fun c -> runReaderT (f (fun a -> ReaderT <| fun _ -> c a)) r)

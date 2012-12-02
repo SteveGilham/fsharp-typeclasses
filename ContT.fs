@@ -17,7 +17,7 @@ type ContT<'Mr,'A> with
     static member inline instance (_MonadTrans:Lift  , _:ContT<'mr,'a>) = fun (m:'ma) -> ContT((>>=) m) : ContT<'mr,'a>
     static member        instance (_MonadCont :CallCC, _:ContT<'mr,'b>) = fun f -> ContT(fun k -> runContT(f (fun a -> ContT(fun _ -> k a))) k) : ContT<'mr,'b>
 
-    static member inline instance (_MonadIO:LiftIO   , _:ContT<_,_>   ) = fun (x: IO<_>) -> lift (liftIO x)
+    static member inline instance (_MonadIO:LiftAsync   , _:ContT<_,_>   ) = fun (x: Async<_>) -> lift (liftAsync x)
 
     static member instance (_MonadReader:Ask, _:ContT<Reader<'a,'b>,'a>) = fun () -> lift ask :ContT<Reader<'a,'b>,'a>
     static member instance (_MonadReader:Local, ContT m, _:ContT<Reader<'a,'b>,'t>) : ('a -> 'b) -> ContT<Reader<'a,'b>,'t> =

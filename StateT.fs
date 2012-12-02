@@ -26,7 +26,7 @@ type StateT<'S,'MaS> with
     static member inline instance (_MonadState :Get, _:StateT<_,_>    ) = fun () -> StateT (fun s -> return' (s , s))
     static member inline instance (_MonadState :Put, _:StateT<_,_>    ) = fun x  -> StateT (fun _ -> return' ((), x))
 
-    static member inline instance (_MonadIO: LiftIO, _:StateT<_,_>    ) = fun (x: IO<_>) -> lift (liftIO x)
+    static member inline instance (_MonadIO: LiftAsync, _:StateT<_,_>    ) = fun (x: Async<_>) -> lift (liftAsync x)
 
 let inline  mapStateT f (StateT m) = StateT(f << m)
 let inline withStateT f (StateT m) = StateT(m << f)

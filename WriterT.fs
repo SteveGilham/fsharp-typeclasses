@@ -38,7 +38,7 @@ type WriterT<'WMa> with
         let! a = m
         return (a, mempty())}
     
-    static member inline instance (_MonadIO:LiftIO    , _:WriterT<_>   ) = fun (x: IO<_>) -> lift (liftIO x)
+    static member inline instance (_MonadIO:LiftAsync    , _:WriterT<_>   ) = fun (x: Async<_>) -> lift (liftAsync x)
 
     static member inline instance (_MonadCont:CallCC  , _:WriterT<Cont<'r,'a*'b>>) : (('a->WriterT<Cont<'r,'t>>)->_) -> WriterT<Cont<'r,'a*'b>>= 
         fun f -> WriterT (callCC <| fun c -> runWriterT (f (fun a -> WriterT <| c (a, mempty()))))
