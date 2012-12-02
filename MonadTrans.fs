@@ -13,20 +13,20 @@ module MaybeT =
 
     let inline runMaybeT   (MaybeT m) = m
     type MaybeT<'Ma> with
-        static member inline instance (_Monad:Return,            _:MaybeT<'ma>) = MaybeT << return' << Just :'a -> MaybeT<'ma>
+        static member inline instance (_Monad:Return,            _:MaybeT<'ma>) = MaybeT << return' << Some :'a -> MaybeT<'ma>
         static member inline instance (_Monad:Bind  , MaybeT x :MaybeT<'ma>, _:MaybeT<'mb>) = 
             fun (f: 'a -> MaybeT<'mb>) -> (MaybeT <| do' {
                 let! maybe_value = x
                 return! match maybe_value with
-                        | Nothing    -> return' Nothing
-                        | Just value -> runMaybeT <| f value}) :MaybeT<'mb>
+                        | None    -> return' None
+                        | Some value -> runMaybeT <| f value}) :MaybeT<'mb>
 
-        static member inline instance (_MonadPlus:Mzero, _:MaybeT<_>) = fun ()         -> MaybeT (return' Nothing)
+        static member inline instance (_MonadPlus:Mzero, _:MaybeT<_>) = fun ()         -> MaybeT (return' None)
         static member inline instance (_MonadPlus:Mplus, MaybeT x, _) = fun (MaybeT y) -> MaybeT <| do' {
                 let! maybe_value = x
                 return! match maybe_value with
-                        | Nothing    -> y
-                        | Just value -> x}
+                        | None    -> y
+                        | Some value -> x}
 
     let inline mapMaybeT f (MaybeT m) = MaybeT (f m)
 
@@ -55,25 +55,26 @@ open MaybeT
 open ListT
 
 type Lift = Lift with
-    static member inline instance (_MonadTrans:Lift, _:MaybeT<'m_a>) = MaybeT << (liftM Just)      :'ma -> MaybeT<'m_a>
+    static member inline instance (_MonadTrans:Lift, _:MaybeT<'m_a>) = MaybeT << (liftM Some)      :'ma -> MaybeT<'m_a>
     static member inline instance (_MonadTrans:Lift, _: ListT<'m_a>) = ListT  << (liftM singleton) :'ma ->  ListT<'m_a> 
 
 let inline lift (x:'ma) = Inline.instance Lift x
 
+open Control.Applicative
 
 type LiftIO = LiftIO with  
-    static member inline instance (_MonadIO:LiftIO, _:MaybeT<'U>) = fun (x :IO<'a>) -> lift (Inline.instance LiftIO x)
-    static member inline instance (_MonadIO:LiftIO, _:ListT< 'U>) = fun (x :IO<'a>) -> lift (Inline.instance LiftIO x)
-    static member        instance (_MonadIO:LiftIO, _:IO<'a>    ) = fun (x :IO<'a>) -> x
+    static member inline instance (_MonadIO:LiftIO, _:MaybeT<'U>) = fun (x :Async<'a>) -> lift (Inline.instance LiftIO x)
+    static member inline instance (_MonadIO:LiftIO, _:ListT< 'U>) = fun (x :Async<'a>) -> lift (Inline.instance LiftIO x)
+    static member        instance (_MonadIO:LiftIO, _:Async<'a>    ) = fun (x :Async<'a>) -> x
 
-let inline liftIO (x: IO<'a>) = Inline.instance LiftIO x
+let inline liftIO (x: Async<'a>) = Inline.instance LiftIO x
 
 
 open Control.Monad.Cont
 
 type CallCC = CallCC with
-    static member instance (_MonadCont:CallCC, _:MaybeT<Cont<'r,Maybe<'a>>>) = fun (f:((_ -> MaybeT<Cont<_,'b>>) -> _)) -> MaybeT(callCC <| fun c -> runMaybeT(f (MaybeT << c << Just)))     :MaybeT<Cont<'r,Maybe<'a>>>
-    static member instance (_MonadCont:CallCC, _:ListT<Cont<'r,List<'a>>>  ) = fun (f:((_ -> ListT<Cont<_,'b>> ) -> _)) -> ListT (callCC <| fun c -> runListT (f (ListT  << c << singleton))) :ListT<Cont<'r, List<'a>>>    
+    static member instance (_MonadCont:CallCC, _:MaybeT<Cont<'r,option<'a>>>) = fun (f:((_ -> MaybeT<Cont<_,'b>>) -> _)) -> MaybeT(callCC <| fun c -> runMaybeT(f (MaybeT << c << Some)))     :MaybeT<Cont<'r,option<'a>>>
+    static member instance (_MonadCont:CallCC, _:ListT<Cont<'r,   List<'a>>>) = fun (f:((_ -> ListT<Cont<_,'b>> ) -> _)) -> ListT (callCC <| fun c -> runListT (f (ListT  << c << singleton))) :ListT<Cont<'r,  List<'a>>>    
     static member instance (_MonadCont:CallCC, _:Cont<'r,'a>) = callCC : (('a -> Cont<'r,'b>) -> _) -> _
 
 let inline callCC f = Inline.instance CallCC f
@@ -99,9 +100,9 @@ let inline put x = Inline.instance Put x
 open Control.Monad.Reader
 
 type Ask = Ask with
-    static member instance (_MonadReader:Ask, _:MaybeT<Reader<'a,Maybe<'a>>>) = fun () -> lift ask :MaybeT<Reader<'a,Maybe<'a>>>
-    static member instance (_MonadReader:Ask, _:ListT<Reader< 'a,List< 'a>>>) = fun () -> lift ask : ListT<Reader<'a, List<'a>>>
-    static member instance (_MonadReader:Ask, _:Reader<'r,'r>               ) = fun () ->      ask :Reader<'r,'r>
+    static member instance (_MonadReader:Ask, _:MaybeT<Reader<'a,option<'a>>>) = fun () -> lift ask :MaybeT<Reader<'a,option<'a>>>
+    static member instance (_MonadReader:Ask, _:ListT<Reader< 'a,List<  'a>>>) = fun () -> lift ask : ListT<Reader<'a,  List<'a>>>
+    static member instance (_MonadReader:Ask, _:Reader<'r,'r>                ) = fun () ->      ask :Reader<'r,'r>
 
 let inline ask() = Inline.instance Ask ()
 
@@ -130,7 +131,7 @@ type Listen = Listen with
 let inline listen m = Inline.instance (Listen, m) ()
 
 type Pass = Pass with
-    static member inline instance (_MonadWriter:Pass, m, _:MaybeT<_>  ) = fun () -> MaybeT (runMaybeT m >>= maybe (return' Nothing) (liftM Just << pass << return'))
+    static member inline instance (_MonadWriter:Pass, m, _:MaybeT<_>  ) = fun () -> MaybeT (runMaybeT m >>= maybe (return' None) (liftM Some << pass << return'))
     static member        instance (_MonadWriter:Pass, m, _:Writer<_,_>) = fun () -> pass m
 
 let inline pass m = Inline.instance (Pass, m) ()

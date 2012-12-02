@@ -4,14 +4,14 @@ open Prelude
 // MonadPlus class ------------------------------------------------------------
 
 type Mzero = Mzero with
-    static member instance (_MonadPlus:Mzero, _:Maybe<'a>) = fun () -> Nothing
-    static member instance (_MonadPlus:Mzero, _:List<'a> ) = fun () -> []
+    static member instance (_MonadPlus:Mzero, _:option<'a>) = fun () -> None
+    static member instance (_MonadPlus:Mzero, _:List<'a>  ) = fun () -> []
 
 let inline mzero () = Inline.instance Mzero ()
 
 type Mplus = Mplus with
-    static member instance (_MonadPlus:Mplus, x:Maybe<_>, _) = fun y -> match x with | Nothing -> y | xs -> xs
-    static member instance (_MonadPlus:Mplus, x:List<_> , _) = fun y -> x ++ y
+    static member instance (_MonadPlus:Mplus, x:option<_>, _) = fun y -> match x with | None -> y | xs -> xs
+    static member instance (_MonadPlus:Mplus, x:List<_>  , _) = fun y -> x @ y
 
 let inline mplus (x:'a) (y:'a) : 'a = Inline.instance (Mplus, x) y
 

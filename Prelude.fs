@@ -8,6 +8,7 @@ let (/>) = flip
 let (++) = (@)
 let (==) = (=)
 let (=/) x y = not (x = y)
+let choice f g = function Choice2Of2 x -> f x | Choice1Of2 y -> g y
 
 type DeReference = DeReference with
     static member instance (DeReference, a:'a ref     , _) = fun () -> !a
@@ -16,22 +17,7 @@ type DeReference = DeReference with
 
 let inline (!) a = Inline.instance (DeReference, a) ()
 
-type Maybe<'t> = Option<'t>
-let  Just x :Maybe<'t> = Some x
-let  Nothing:Maybe<'t> = None
-let  (|Just|Nothing|) = function Some x -> Just x | _ -> Nothing
-let maybe  n f = function | Nothing -> n | Just x -> f x
-
-type Ordering = LT|EQ|GT
-
-let inline compare' x y =
-    match compare x y with
-    | a when a > 0 -> GT
-    | a when a < 0 -> LT
-    | _            -> EQ
-
-type Either<'a,'b> = Left of 'a | Right of 'b
-let either f g = function Left x -> f x | Right y -> g y
+let maybe  n f = function | None -> n | Some x -> f x
 
 
 // Num class --------------------------------------------------------------
@@ -269,6 +255,17 @@ let inline atanh x :'Floating = (1G/2G) * log ((1G+x) / (1G-x))
 let inline logBase x y  :'Floating =  log y / log x
 
 
+// IO ---------------------------------------------------------------------
+
+let runIO = Async.RunSynchronously
+let primretIO   = async.Return
+let primbindIO io f = async.Bind(io,f)
+
+let getLine    = async.Delay(fun () -> async.Return (System.Console.ReadLine()))
+let putStrLn x = async.Delay(fun () -> async.Return (printfn "%s" x))
+let print    x = async.Delay(fun () -> async.Return (printfn "%A" x))
+
+
 // List functions ---------------------------------------------------------
 
 let map, replicate, filter, head, tail = List.map, List.replicate, List.filter, List.head, List.tail
@@ -282,34 +279,28 @@ let foldl = List.fold
 let rec foldl1 f = function (x::xs) -> foldl f x xs | [] -> failwith "EmptyList foldl1"
 
 
-// IO ---------------------------------------------------------------------
-
-type IO<'a> = IO of (unit->'a)
-let runIO  (IO f)   = f()
-let primretIO  f    = IO(fun () -> f)
-let primbindIO io f = IO(fun () -> runIO (f (runIO io )))
-
-let getLine    = IO(fun() -> System.Console.ReadLine())
-let putStrLn x = IO(fun() -> printfn "%s" x)
-let print    x = IO(fun() -> printfn "%A" x)
-
 
 // Functor class ----------------------------------------------------------
 
+open System
+let (|Null|Value|) (x: _ Nullable) = if x.HasValue then Value x.Value else Null
+
 type Fmap = Fmap with
-    static member instance (_Functor:Fmap, x:Maybe<_>     , _) = fun f -> Option.map  f x
-    static member instance (_Functor:Fmap, x:List<_>      , _) = fun f -> List.map    f x  
-    static member instance (_Functor:Fmap, x:IO<_>        , _) = fun f -> primbindIO  x (primretIO << f)
+    static member instance (_Functor:Fmap, x:option<_>    , _) = fun f -> Option.map  f x
+    static member instance (_Functor:Fmap, x:List<_>      , _:List<'b>) = fun f -> List.map    f x :List<'b>
     static member instance (_Functor:Fmap, g:_->_         , _) = (>>) g
-    static member instance (_Functor:Fmap, e:Either<'a,'b>, _) = fun f ->
-        match e with
-        | (Left x ) -> Left x
-        | (Right y) -> Right (f y)
     static member instance (_Functor:Fmap, x:array<_>     , _) = fun f -> Array.map   f x
     static member instance (_Functor:Fmap, x:_ [,]        , _) = fun f -> Array2D.map f x
     static member instance (_Functor:Fmap, x:_ [,,]       , _) = fun f -> Array3D.map f x
     static member instance (_Functor:Fmap, x:_ [,,,]      , _) = fun f ->
         Array4D.init (x.GetLength 0) (x.GetLength 1) (x.GetLength 2) (x.GetLength 3) (fun a b c d -> f x.[a,b,c,d])
+    static member instance (_Functor:Fmap, x:Async<_>   , _) = fun f -> async.Bind(x,f >> async.Return)
+    static member instance (_Functor:Fmap, x:Nullable<_>, _) = fun f -> match x with
+                                                                        | Null -> Nullable()
+                                                                        | Value v -> Nullable(f v)
+    static member instance (_Functor:Fmap, x:Choice<_,_>, _) = fun f -> match x with
+                                                                        | Choice2Of2 x -> Choice2Of2(f x)
+                                                                        | Choice1Of2 x -> Choice1Of2 x
 
 let inline fmap f x = Inline.instance (Fmap, x) f
 
@@ -317,22 +308,28 @@ let inline fmap f x = Inline.instance (Fmap, x) f
 // Monad class ------------------------------------------------------------
 
 type Return = Return with
-    static member instance (_Monad:Return, _:Maybe<'a>    ) = fun x -> Just x      :Maybe<'a>
+    static member instance (_Monad:Return, _:option<'a>   ) = fun x -> Some x      :option<'a>
     static member instance (_Monad:Return, _:List<'a>     ) = fun x -> [x]         :List<'a>
-    static member instance (_Monad:Return, _:IO<'a>       ) = fun x -> primretIO x :IO<'a>
     static member instance (_Monad:Return, _: 'r -> 'a    ) = fun x -> const'    x : 'r -> 'a
-    static member instance (_Monad:Return, _:Either<'e,'a>) = fun x -> Right     x :Either<'e,'a>
+    static member instance (_Monad:Return, _:'a Async     ) = fun (x:'a) -> async.Return x
+    static member instance (_Monad:Return, _:'a Nullable  ) = fun (x:'a) -> Nullable x
+    static member instance (_Monad:Return, _:Choice<'a,'e>) = fun x -> Choice1Of2     x :Choice<'a,'e>
 
 let inline return' x = Inline.instance Return x
 
 type Bind = Bind with
-    static member instance (_Monad:Bind, x:Maybe<_>    , _:Maybe<'b>    ) = fun (f:_->Maybe<'b>   ) -> Option.bind  f x
-    static member instance (_Monad:Bind, x:List<_>     , _:List<'b>     ) = fun (f:_->List<'b>    ) -> List.collect f x
-    static member instance (_Monad:Bind, x:IO<_>       , _:IO<'b>       ) = fun (f:_->IO<'b>      ) -> primbindIO x f
-    static member instance (_Monad:Bind, f:'r->'a      , _:'r->'b       ) = fun (k:_->_->'b) r      -> k (f r) r
-    static member instance (_Monad:Bind, x:Either<'e,_>, _:Either<'e,'b>) = fun (k:_->Either<_,'b>) -> match x with
-                                                                                                       | Left  l -> Left l
-                                                                                                       | Right r -> k r
+    static member instance (_Monad:Bind, x:option<_>   , _:option<'b> ) = fun (f:_->option<'b>) -> Option.bind  f x
+    static member instance (_Monad:Bind, x:List<_>     , _:List<'b>   ) = fun (f:_->List<'b>  ) -> List.collect f x
+    static member instance (_Monad:Bind, f:'r->'a      , _:'r->'b     ) = fun (k:_->_->'b) r    -> k (f r) r
+    
+    static member instance (_Monad:Bind, x:Async<'a>   , _:'b Async   ) = fun (f:_->Async<'b> ) -> async.Bind(x,f)
+    static member instance (_Monad:Bind, x:Nullable<_> , _:'b Nullable) = fun f ->
+        match x with
+        | Null -> Nullable()
+        | Value v -> f v : Nullable<'b>
+    static member instance (_Monad:Bind, x:Choice<_,'e>, _:Choice<'b,'e>) = fun (k:_->Choice<'b,_>) -> match x with
+                                                                                                       | Choice2Of2 l -> Choice2Of2 l
+                                                                                                       | Choice1Of2 r -> k r
                                                                                                        
 let inline (>>=) x (f:_->'R) : 'R = Inline.instance (Bind, x) f
 let inline (=<<) (f:_->'R) x : 'R = Inline.instance (Bind, x) f

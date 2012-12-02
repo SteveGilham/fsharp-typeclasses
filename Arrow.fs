@@ -41,15 +41,15 @@ let inline ( &&& ) f g = arr (fun b -> (b,b)) >>> f *** g
 
 
 type AcEither = AcEither with
-    static member inline instance (_ArrowChoice:AcEither, _:Either<_,_>->_) = fun (         f ,          g ) ->          either f g
-    static member inline instance (_ArrowChoice:AcEither, _:Kleisli<_,_>  ) = fun ((Kleisli f), (Kleisli g)) -> Kleisli (either f g)
+    static member inline instance (_ArrowChoice:AcEither, _:Choice<_,_>->_) = fun (         f ,          g ) ->          choice f g
+    static member inline instance (_ArrowChoice:AcEither, _:Kleisli<_,_>  ) = fun ((Kleisli f), (Kleisli g)) -> Kleisli (choice f g)
 
 let inline (|||) f g = Inline.instance AcEither (f, g)
 
 type AcMerge = AcMerge with
-    static member inline instance (_ArrowChoice:AcMerge, _: _->    Either<_,_>      ) = fun (f, g)  ->  (Left << f) ||| (Right << g)
-    static member inline instance (_ArrowChoice:AcMerge, _:Kleisli<Either<'t,'v>,'z>) = fun ((Kleisli (f:'t->'u)), (Kleisli (g:'v->'w))) ->
-        Kleisli (f >=> (return' <<< Left)) ||| Kleisli (g >=> (return' <<< Right)) :Kleisli<Either<'t,'v>,'z>
+    static member inline instance (_ArrowChoice:AcMerge, _: _->    Choice<_,_>      ) = fun (f, g)  ->  (Choice2Of2 << f) ||| (Choice1Of2 << g)
+    static member inline instance (_ArrowChoice:AcMerge, _:Kleisli<Choice<'v,'t>,'z>) = fun ((Kleisli (f:'t->'u)), (Kleisli (g:'v->'w))) ->
+        Kleisli (f >=> (return' <<< Choice2Of2)) ||| Kleisli (g >=> (return' <<< Choice1Of2)) :Kleisli<Choice<'v,'t>,'z>
 
 let inline (+++) f g = Inline.instance AcMerge (f, g)
 

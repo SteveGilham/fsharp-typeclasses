@@ -2,13 +2,12 @@
 
 open Prelude
 
-type Mempty = Mempty with    
-    static member        instance (_Monoid:Mempty, _:List<'a> ) = fun () -> []      :List<'a>
-    static member        instance (_Monoid:Mempty, _:Maybe<'a>) = fun () -> Nothing :Maybe<'a>
-    static member        instance (_Monoid:Mempty, _:array<'a>) = fun () -> [||]    :array<'a>
-    static member        instance (_Monoid:Mempty, _:string   ) = fun () -> ""
-    static member        instance (_Monoid:Mempty, _:Ordering ) = fun () -> EQ
-    static member        instance (_Monoid:Mempty, _:unit     ) = fun () -> ()
+type Mempty = Mempty with   
+    static member        instance (_Monoid:Mempty, _:List<'a>  ) = fun () -> []   :  List<'a>
+    static member        instance (_Monoid:Mempty, _:option<'a>) = fun () -> None :option<'a>
+    static member        instance (_Monoid:Mempty, _:array<'a> ) = fun () -> [||] : array<'a>
+    static member        instance (_Monoid:Mempty, _:string    ) = fun () -> ""
+    static member        instance (_Monoid:Mempty, _:unit      ) = fun () -> ()
 
 let inline mempty() = Inline.instance Mempty ()
 
@@ -22,26 +21,21 @@ type Mempty with static member inline instance (_Monoid:Mempty, _ : 'a*'b*'c*'d*
                     (mempty(),mempty(),mempty(),mempty(),mempty()): 'a*'b*'c*'d*'e
 
 
-type Mappend = Mappend with        
-    static member        instance (_Monoid:Mappend, x:List<_>  , _) = fun y -> x ++ y        
-    static member        instance (_Monoid:Mappend, x:array<_> , _) = fun y -> x </Array.append/> y
+type Mappend = Mappend with       
+    static member        instance (_Monoid:Mappend, x:List<_>  , _) = fun y -> x @ y       
+    static member        instance (_Monoid:Mappend, x:array<_> , _) = fun y -> Array.append x y
     static member        instance (_Monoid:Mappend, x:string   , _) = fun y -> x + y
-    static member        instance (_Monoid:Mappend, x:Ordering , _) = fun y -> 
-        match (x,y) with
-        | (LT,_) -> LT
-        | (EQ,a) -> a
-        | (GT,_) -> GT
-    static member        instance (_Monoid:Mappend, ()    , _) = fun () -> ()
+    static member        instance (_Monoid:Mappend, ()         , _) = fun () -> ()
 
 let inline mappend (x:'a) (y:'a) :'a = Inline.instance (Mappend, x) y
 
 type Mappend with
-    static member inline instance (_Monoid:Mappend, x:Maybe<_> , _) = fun y -> 
+    static member inline instance (_Monoid:Mappend, x:option<_> , _) = fun y ->
         match (x,y) with
-        | (Just a , Just b ) -> Just (a </mappend/> b)
-        | (Just a , Nothing) -> Just a
-        | (Nothing, Just b ) -> Just b
-        | _                  -> Nothing
+        | (Some a , Some b) -> Some (mappend a b)
+        | (Some a , None  ) -> Some a
+        | (None   , Some b) -> Some b
+        | _                 -> None
 
 
 type Mappend with static member inline instance (_Monoid:Mappend, (x1,x2         ), _) = fun (y1,y2         ) ->

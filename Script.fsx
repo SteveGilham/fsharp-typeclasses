@@ -50,7 +50,7 @@ let action = do' {
     let  fullname = fn + " " + ln
     do! putStrLn  ("Your full name is: " + fullname)
     return fullname }
-// try -> runIO action ;;
+// try > runIO action ;;
 
 
 // Functors
@@ -64,7 +64,6 @@ let fTimes2minus3 = fmap minus3 times2
 let res39         = fTimes2minus3 21G
 let getChars      = fmap (fun (x:string) -> x.ToCharArray() |> Seq.toList ) action
 // try -> runIO getChars ;;
-
 
 
 // Define a type Tree
@@ -100,8 +99,6 @@ let res15 = mappend (Product 15) (mempty())
 let resTrue = mconcat [mempty(); Any true]
 let resFalse = mconcat (fmap All [true;false])
 let resHi = mappend (mempty()) "Hi"
-let resGT = mappend (mempty()) GT
-let resLT = mconcat [mempty(); LT ; EQ ;GT]
 let res9823 = mconcat (fmap Dual [mempty();"3";"2";"8";"9"])
 let resBA = (Dual "A" ) </mappend/> (Dual "B" )
 let resEl00:list<int>*Sum<float> = mempty()
@@ -109,7 +106,6 @@ let resS3P20     = mappend (Sum 1G,Product 5.0) (Sum 2,Product 4G)
 let res230       = mappend (mempty(),mempty()) ([2],[3.0])
 let res243       = mappend  ([2;4],[3]) (mempty())
 let res23        = mappend (mempty()) ([2],"3")
-let resLtDualGt  = mappend  (LT,Dual GT) (mempty())
 let res230hiSum2 = mappend (mempty(), mempty(), Sum 2) ([2], ([3.0], "hi"), mempty())
 let res230hiS4P3 = mappend (mempty(), mempty()       ) ([2], ([3.0], "hi", Sum 4, Product (6 % 2)))
 let tuple5 :string*(Any*string)*(All*All*All)*Sum<int>*string = mempty()
@@ -157,9 +153,9 @@ let (res10x13n10x20n15x13n15x20:list<_>) = runKleisli (Kleisli (fun y -> [y * 2;
 let (res10x8n10x10n15x8n15x10  :list<_>) = runKleisli (Kleisli (fun y -> [y * 2; y * 3]) &&& Kleisli (fun x -> [x + 3; x *  2] )) 5
 
 // Arrow choice
-let resLeft7       = ( (+) 2) +++ ( (*) 10)   <| Left  5
-let res7n50        = runKleisli (Kleisli (fun y -> [y; y * 2 ; y * 3]) ||| Kleisli (fun x -> [x + 2; x * 10] )) (Right 5)
-let resLeft5n10n15 = runKleisli (Kleisli (fun y -> [y; y * 2 ; y * 3]) +++ Kleisli (fun x -> [x + 3; x *  2] )) (Left  5)
+let resLeft7       = ( (+) 2) +++ ( (*) 10)   <| Choice2Of2  5
+let res7n50        = runKleisli (Kleisli (fun y -> [y; y * 2 ; y * 3]) ||| Kleisli (fun x -> [x + 2; x * 10] )) (Choice1Of2 5)
+let resLeft5n10n15 = runKleisli (Kleisli (fun y -> [y; y * 2 ; y * 3]) +++ Kleisli (fun x -> [x + 3; x *  2] )) (Choice2Of2 5)
 
 //Arrow Apply
 let res7      = app() ( (+) 3 , 4)
@@ -206,18 +202,18 @@ let res18n14' = iI (+) (ZipList(seq [8;4])) (pure' 10            ) Ii
 let inline join x =  x >>= id
 type Idiomatic with static member inline ($) (Idiomatic, Ji) = fun xii -> join xii
 
-let safeDiv x y = if y == 0 then Nothing else Just (x </div/> y)
-let resJust3    = join (iI safeDiv (Just 6) (Just 2) Ii)
-let resJust3'   =       iI safeDiv (Just 6) (Just 2) Ji
+let safeDiv x y = if y == 0 then None else Some (x </div/> y)
+let resJust3    = join (iI safeDiv (Some 6) (Some 2) Ii)
+let resJust3'   =       iI safeDiv (Some 6) (Some 2) Ji
 
-let safeDivBy y = if y == 0 then Nothing else Just (fun x -> x </div/> y)
-let resJust2  = join (pure' safeDivBy  <*> Just 4G) <*> Just 8G
-let resJust2' = join (   iI safeDivBy (Just 4G) Ii) <*> Just 8G
+let safeDivBy y = if y == 0 then None else Some (fun x -> x </div/> y)
+let resJust2  = join (pure' safeDivBy  <*> Some 4G) <*> Some 8G
+let resJust2' = join (   iI safeDivBy (Some 4G) Ii) <*> Some 8G
 
 type Idiomatic with static member inline ($) (Idiomatic, J ) = fun fii x -> (Idiomatic $ x) (join fii)
 
-let resJust2'' = iI safeDivBy (Just 4G) J (Just 8G) Ii
-let resNothing = iI safeDivBy (Just 0G) J (Just 8G) Ii
+let resJust2'' = iI safeDivBy (Some 4G) J (Some 8G) Ii
+let resNothing = iI safeDivBy (Some 0G) J (Some 8G) Ii
 
 
 // Foldable
@@ -225,8 +221,7 @@ let resNothing = iI safeDivBy (Just 0G) J (Just 8G) Ii
 
 open Data.Foldable
 
-let resGt = foldMap (compare' 2) [1;2;3]
-let resHW = foldMap (fun x -> Just ("hello " + x)) (Just "world")
+let resHW = foldMap (fun x -> Some ("hello " + x)) (Some "world")
 
 module FoldableTree =
     type Tree<'a> =
@@ -258,10 +253,10 @@ module FoldableTree =
 open Data.Traversable
 
 let f x = if x < 200 then [3 - x] else []
-let g x = if x < 200 then Just (3 - x) else Nothing
+let g x = if x < 200 then Some (3 - x) else None
 
-let resSomeminus100 = traverse f (Just 103)
-let resLstOfNull    = traverse f Nothing 
+let resSomeminus100 = traverse f (Some 103)
+let resLstOfNull    = traverse f None 
 let res210          = traverse f [1;2;3]  
 let resSome210      = traverse g [1;2;3]  
 let resEmptyList    = traverse f [1000;2000;3000] 
@@ -363,14 +358,14 @@ open Control.Monad.Trans
 open Control.Monad.Trans.MaybeT
 open Control.Monad.Trans.ListT
 
-let maybeT4x6xN = fmap ((+) 2) (MaybeT [Just 2; Just 4; Nothing])
+let maybeT4x6xN = fmap ((+) 2) (MaybeT [Some 2; Some 4; None])
 let maybeT = MaybeT [Some 2; Some 4] >>= fun x -> MaybeT [Some x; Some (x+10)]
 
-let listT2x4x6  = fmap ((+) 2) (ListT (Just [2; 4; 6]))
+let listT2x4x6  = fmap ((+) 2) (ListT (Some [2; 4; 6]))
 let listT  = ListT  (Some [2;4]    ) >>= fun x -> ListT  (Some [x; x+10]     )
 
-let apMaybeT = ap (MaybeT [Just ((+) 3)] ) ( MaybeT [Just  3 ] )
-let apListT  = ap (ListT  (Just [(+) 3]) ) ( ListT  (Just [3]) )
+let apMaybeT = ap (MaybeT [Some ((+) 3)] ) ( MaybeT [Some  3 ] )
+let apListT  = ap (ListT  (Some [(+) 3]) ) ( ListT  (Some [3]) )
 
 let resListTSome2547 = (ListT (Some [2;4] )) >>=  (fun x -> ListT ( Some [x;x+3G]) )
 
@@ -398,7 +393,7 @@ let askPass = runMaybeT askPassword
 
 //try -> runIO askPass
 
-let resLiftIOMaybeT = liftIO getLine : MaybeT<IO<_>>
+let resLiftIOMaybeT = liftIO getLine : MaybeT<Async<_>>
 
 
 #load "ContT.fs"
@@ -435,7 +430,7 @@ let resSome15 = runCont (runMaybeT (bar 'h' !"ello")) id
 let resList29 = runCont (runListT  (bar 'h' !"i"   )) id
 
 
-let resLiftIOContT = liftIO getLine : ContT<IO<string>,_>
+let resLiftIOContT = liftIO getLine : ContT<Async<string>,_>
 
 #load "ReaderT.fs"
 open Control.Monad.ReaderT
@@ -461,7 +456,7 @@ open Control.Monad.StateT
 // from http://www.haskell.org/haskellwiki/Simple_StateT_use
 #nowarn "0025"  // Incomplete pattern match, list cannot be infinite if F#
 let code  =
-    let inline io (x: IO<_>)  : StateT<_,IO<_>> = liftIO x
+    let inline io (x: Async<_>)  : StateT<_,Async<_>> = liftIO x
     let pop  = do' {
         let! (x::xs) = get()
         do! put xs
@@ -475,7 +470,7 @@ let code  =
 
 let main = runStateT code [1..10] >>= fun _ -> return' ()
 
-let resLiftIOStateT = liftIO getLine : StateT<string,IO<_>>
+let resLiftIOStateT = liftIO getLine : StateT<string,Async<_>>
 
 
 #load "WriterT.fs"
@@ -509,13 +504,13 @@ let logstatecase3 x y z : WriterT<_> =  do' {
 //runState (runWriterT (logstatecase3 'a' 'b' 'c')) true  -> ((char * char * char) list * string) * bool = (([('a', 'B', 'c')], "Low Up Low "), false)
 //runState (runWriterT (logstatecase3 'a' 'b' 'c')) false -> ((char * char * char) list * string) * bool = (([('A', 'b', 'C')], "Up Low Up "), true)
 
-let resLiftIOWriterT = liftIO getLine : WriterT<IO<_ * string>>
+let resLiftIOWriterT = liftIO getLine : WriterT<Async<_ * string>>
 
 
 // N-layers Monad Transformer
 
 let res3Layers   = (lift << lift)         getLine : MaybeT<ReaderT<string,_>>
-let res3Layers'  = (lift << lift)         getLine : MaybeT<WriterT<IO<_ * string>>>
-let res3Layers'' = liftIO                 getLine : MaybeT<WriterT<IO<_ * string>>>
-let res4Layers   = (lift << lift << lift) getLine : ListT<MaybeT<WriterT<IO<_ * string>>>>
-let res4Layers'  = liftIO                 getLine : ListT<MaybeT<WriterT<IO<_ * string>>>>
+let res3Layers'  = (lift << lift)         getLine : MaybeT<WriterT<Async<_ * string>>>
+let res3Layers'' = liftIO                 getLine : MaybeT<WriterT<Async<_ * string>>>
+let res4Layers   = (lift << lift << lift) getLine : ListT<MaybeT<WriterT<Async<_ * string>>>>
+let res4Layers'  = liftIO                 getLine : ListT<MaybeT<WriterT<Async<_ * string>>>>
