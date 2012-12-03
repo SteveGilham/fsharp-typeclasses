@@ -25,84 +25,91 @@ let maybe  n f = function | None -> n | Some x -> f x
 open System.Numerics
 type Integer = bigint
 
-type FromInteger = FromInteger with
-    static member        instance (_Num:FromInteger, _:sbyte     ) = fun (x:Integer) -> sbyte           x
-    static member        instance (_Num:FromInteger, _:int16     ) = fun (x:Integer) -> int16           x
-    static member        instance (_Num:FromInteger, _:int32     ) = fun (x:Integer) -> int             x
-    static member        instance (_Num:FromInteger, _:int64     ) = fun (x:Integer) -> int64           x
-    static member        instance (_Num:FromInteger, _:nativeint ) = fun (x:Integer) -> nativeint  (int x)
-    static member        instance (_Num:FromInteger, _:byte      ) = fun (x:Integer) -> byte            x
-    static member        instance (_Num:FromInteger, _:uint16    ) = fun (x:Integer) -> uint16          x
-    static member        instance (_Num:FromInteger, _:uint32    ) = fun (x:Integer) -> uint32          x
-    static member        instance (_Num:FromInteger, _:uint64    ) = fun (x:Integer) -> uint64          x
-    static member        instance (_Num:FromInteger, _:unativeint) = fun (x:Integer) -> unativeint (int x)
-    static member        instance (_Num:FromInteger, _:bigint    ) = fun (x:Integer) ->                 x
-    static member        instance (_Num:FromInteger, _:float     ) = fun (x:Integer) -> float           x
-    static member        instance (_Num:FromInteger, _:float32   ) = fun (x:Integer) -> float32         x    
-    static member        instance (_Num:FromInteger, _:decimal   ) = fun (x:Integer) -> decimal         x
-    static member        instance (_Num:FromInteger, _:Complex   ) = fun (x:Integer) -> Complex (float  x, 0.0)
+module Num =
+    type FromInteger = FromInteger with
+        static member        instance (FromInteger, _:sbyte     ) = fun (x:Integer) -> sbyte           x
+        static member        instance (FromInteger, _:int16     ) = fun (x:Integer) -> int16           x
+        static member        instance (FromInteger, _:int32     ) = fun (x:Integer) -> int             x
+        static member        instance (FromInteger, _:int64     ) = fun (x:Integer) -> int64           x
+        static member        instance (FromInteger, _:nativeint ) = fun (x:Integer) -> nativeint  (int x)
+        static member        instance (FromInteger, _:byte      ) = fun (x:Integer) -> byte            x
+        static member        instance (FromInteger, _:uint16    ) = fun (x:Integer) -> uint16          x
+        static member        instance (FromInteger, _:uint32    ) = fun (x:Integer) -> uint32          x
+        static member        instance (FromInteger, _:uint64    ) = fun (x:Integer) -> uint64          x
+        static member        instance (FromInteger, _:unativeint) = fun (x:Integer) -> unativeint (int x)
+        static member        instance (FromInteger, _:bigint    ) = fun (x:Integer) ->                 x
+        static member        instance (FromInteger, _:float     ) = fun (x:Integer) -> float           x
+        static member        instance (FromInteger, _:float32   ) = fun (x:Integer) -> float32         x    
+        static member        instance (FromInteger, _:decimal   ) = fun (x:Integer) -> decimal         x
+        static member        instance (FromInteger, _:Complex   ) = fun (x:Integer) -> Complex (float  x, 0.0)
 
-let inline fromInteger (x:Integer) :'Num = Inline.instance FromInteger x
+    let inline fromInteger (x:Integer) :'Num = Inline.instance FromInteger x
+    
 
-type Abs = Abs with
-    static member inline instance (     Abs, _:^t when ^t: null and ^t: struct, _) = fun () -> id
-    static member inline instance (_Num:Abs, x:'t        , _) = fun () -> abs x
-    static member        instance (_Num:Abs, x:byte      , _) = fun () ->     x
-    static member        instance (_Num:Abs, x:uint16    , _) = fun () ->     x
-    static member        instance (_Num:Abs, x:uint32    , _) = fun () ->     x
-    static member        instance (_Num:Abs, x:uint64    , _) = fun () ->     x
-    static member        instance (_Num:Abs, x:unativeint, _) = fun () ->     x
-    static member        instance (_Num:Abs, x:Complex   , _) = fun () -> Complex(x.Magnitude, 0.0)
+    type Abs = Abs with
+        static member inline instance (Abs, _:^t when ^t: null and ^t: struct, _) = fun () -> id
+        static member inline instance (Abs, x:'t        , _) = fun () -> abs x
+        static member        instance (Abs, x:byte      , _) = fun () ->     x
+        static member        instance (Abs, x:uint16    , _) = fun () ->     x
+        static member        instance (Abs, x:uint32    , _) = fun () ->     x
+        static member        instance (Abs, x:uint64    , _) = fun () ->     x
+        static member        instance (Abs, x:unativeint, _) = fun () ->     x
+        static member        instance (Abs, x:Complex   , _) = fun () -> Complex(x.Magnitude, 0.0)
 
-let inline abs (x:'Num) :'Num = Inline.instance (Abs, x) ()
+    
 
-type Signum = Signum with
-    static member inline instance (     Signum, _:^t when ^t: null and ^t: struct, _) = fun () -> id
-    static member inline instance (_Num:Signum, x:'t        , _) = fun () -> fromInteger (bigint (sign x)) :'t
-    static member        instance (_Num:Signum, x:byte      , _) = fun () -> if x == 0uy then 0uy else 1uy
-    static member        instance (_Num:Signum, x:uint16    , _) = fun () -> if x == 0us then 0us else 1us
-    static member        instance (_Num:Signum, x:uint32    , _) = fun () -> if x == 0u  then 0u  else 1u
-    static member        instance (_Num:Signum, x:uint64    , _) = fun () -> if x == 0UL then 0UL else 1UL
-    static member        instance (_Num:Signum, x:unativeint, _) = fun () -> if x == 0un then 0un else 1un
-    static member        instance (_Num:Signum, x:Complex   , _) = fun () -> 
-        if x.Magnitude == 0.0 then Complex.Zero
-        else Complex(x.Real / x.Magnitude, x.Imaginary / x.Magnitude)
+    type Signum = Signum with
+        static member inline instance (Signum, _:^t when ^t: null and ^t: struct, _) = fun () -> id
+        static member inline instance (Signum, x:'t        , _) = fun () -> fromInteger (bigint (sign x)) :'t
+        static member        instance (Signum, x:byte      , _) = fun () -> if x == 0uy then 0uy else 1uy
+        static member        instance (Signum, x:uint16    , _) = fun () -> if x == 0us then 0us else 1us
+        static member        instance (Signum, x:uint32    , _) = fun () -> if x == 0u  then 0u  else 1u
+        static member        instance (Signum, x:uint64    , _) = fun () -> if x == 0UL then 0UL else 1UL
+        static member        instance (Signum, x:unativeint, _) = fun () -> if x == 0un then 0un else 1un
+        static member        instance (Signum, x:Complex   , _) = fun () -> 
+            if x.Magnitude == 0.0 then Complex.Zero
+            else Complex(x.Real / x.Magnitude, x.Imaginary / x.Magnitude)
    
-let inline signum (x:'Num) :'Num = Inline.instance (Signum, x) ()
+
+
+    type Negate = Negate with
+        static member inline instance (Negate, _:^t when ^t: null and ^t: struct, _) = fun () -> id
+        static member inline instance (Negate, x:'t        , _) = fun () -> -x
+        static member        instance (Negate, x:byte      , _) = fun () -> 0uy - x
+        static member        instance (Negate, x:uint16    , _) = fun () -> 0us - x
+        static member        instance (Negate, x:uint32    , _) = fun () -> 0u  - x
+        static member        instance (Negate, x:uint64    , _) = fun () -> 0UL - x
+        static member        instance (Negate, x:unativeint, _) = fun () -> 0un - x
+
+let inline fromInteger (x:Integer) :'Num = Num.fromInteger x
+let inline abs (x:'Num) :'Num = Inline.instance (Num.Abs, x) ()
+let inline signum (x:'Num) :'Num = Inline.instance (Num.Signum, x) ()
 
 let inline (+) (a:'Num) (b:'Num) :'Num = a + b
 let inline (-) (a:'Num) (b:'Num) :'Num = a - b
 let inline (*) (a:'Num) (b:'Num) :'Num = a * b
-
-type Negate = Negate with
-    static member inline instance (     Negate, _:^t when ^t: null and ^t: struct, _) = fun () -> id
-    static member inline instance (_Num:Negate, x:'t        , _) = fun () -> -x
-    static member        instance (_Num:Negate, x:byte      , _) = fun () -> 0uy - x
-    static member        instance (_Num:Negate, x:uint16    , _) = fun () -> 0us - x
-    static member        instance (_Num:Negate, x:uint32    , _) = fun () -> 0u  - x
-    static member        instance (_Num:Negate, x:uint64    , _) = fun () -> 0UL - x
-    static member        instance (_Num:Negate, x:unativeint, _) = fun () -> 0un - x
    
-let inline negate (x:'Num) :'Num = Inline.instance (Negate, x) ()
-let inline (~-)   (x:'Num) :'Num = Inline.instance (Negate, x) ()
+let inline negate (x:'Num) :'Num = Inline.instance (Num.Negate, x) ()
+let inline (~-)   (x:'Num) :'Num = Inline.instance (Num.Negate, x) ()
+
 
 
 // Integral class ---------------------------------------------------------
+module Integral =
+    type ToInteger = ToInteger with
+        static member        instance (ToInteger, x:sbyte     , _) = fun () -> bigint (int x)
+        static member        instance (ToInteger, x:int16     , _) = fun () -> bigint (int x)
+        static member        instance (ToInteger, x:int32     , _) = fun () -> bigint      x
+        static member        instance (ToInteger, x:int64     , _) = fun () -> bigint      x
+        static member        instance (ToInteger, x:nativeint , _) = fun () -> bigint (int x)
+        static member        instance (ToInteger, x:byte      , _) = fun () -> bigint (int x)
+        static member        instance (ToInteger, x:uint16    , _) = fun () -> bigint (int x)
+        static member        instance (ToInteger, x:uint32    , _) = fun () -> bigint      x
+        static member        instance (ToInteger, x:uint64    , _) = fun () -> bigint      x
+        static member        instance (ToInteger, x:unativeint, _) = fun () -> bigint (int x)
+        static member        instance (ToInteger, x:bigint    , _) = fun () ->             x
 
-type ToInteger = ToInteger with
-    static member        instance (_Integral:ToInteger, x:sbyte     , _) = fun () -> bigint (int x)
-    static member        instance (_Integral:ToInteger, x:int16     , _) = fun () -> bigint (int x)
-    static member        instance (_Integral:ToInteger, x:int32     , _) = fun () -> bigint      x
-    static member        instance (_Integral:ToInteger, x:int64     , _) = fun () -> bigint      x
-    static member        instance (_Integral:ToInteger, x:nativeint , _) = fun () -> bigint (int x)
-    static member        instance (_Integral:ToInteger, x:byte      , _) = fun () -> bigint (int x)
-    static member        instance (_Integral:ToInteger, x:uint16    , _) = fun () -> bigint (int x)
-    static member        instance (_Integral:ToInteger, x:uint32    , _) = fun () -> bigint      x
-    static member        instance (_Integral:ToInteger, x:uint64    , _) = fun () -> bigint      x
-    static member        instance (_Integral:ToInteger, x:unativeint, _) = fun () -> bigint (int x)
-    static member        instance (_Integral:ToInteger, x:bigint    , _) = fun () ->             x
-
-let inline toInteger (x:'Integral) :Integer = Inline.instance (ToInteger, x) ()
+let inline toInteger (x:'Integral) :Integer = Inline.instance (Integral.ToInteger, x) ()
 
 let inline fromIntegral (x:'Integral) :'Num = (fromInteger << toInteger) x
 
@@ -167,26 +174,27 @@ module Ratio =
         static member inline (-) (Ratio(a,b), Ratio(c,d)) = (a * d - c * b) % (b * d)
         static member inline (*) (Ratio(a,b), Ratio(c,d)) = (a * c) % (b * d)   
 
+    type Ratio<'RA> with static member inline instance (Num.Abs        , r:Ratio<_>, _) = fun () -> (abs    (numerator r)) % (denominator r)
+    type Ratio<'RA> with static member inline instance (Num.Signum     , r:Ratio<_>, _) = fun () -> (signum (numerator r)) % 1G
+    type Ratio<'RA> with static member inline instance (dm:Num.FromInteger, _:Ratio<_>) = fun (x:Integer) -> Num.fromInteger x % 1G
+    type Ratio<'RA> with static member inline instance (Num.Negate     , r:Ratio<_>, _) = fun () -> -(numerator r) % (denominator r)
+
+type Rational = Ratio.Ratio<Integer>
 open Ratio
-type Rational = Ratio<Integer>
 let inline (%) (a:'Integral) (b:'Integral) :Ratio<'Integral> = a % b
 
-type Abs         with static member inline instance (_Num:Abs        , r:Ratio<_>, _) = fun () -> (abs    (numerator r)) % (denominator r)
-type Signum      with static member inline instance (_Num:Signum     , r:Ratio<_>, _) = fun () -> (signum (numerator r)) % 1G
-type FromInteger with static member inline instance (_Num:FromInteger, _:Ratio<_>   ) = fun (x:Integer) -> fromInteger x % 1G
-type Negate      with static member inline instance (_Num:Negate     , r:Ratio<_>, _) = fun () -> -(numerator r) % (denominator r)
 
 
 // Fractional class -------------------------------------------------------
+module Fractional =
+    type FromRational = FromRational with
+        static member        instance (FromRational, _:float   ) = fun (r:Rational) -> float   (numerator r) / float   (denominator r)
+        static member        instance (FromRational, _:float32 ) = fun (r:Rational) -> float32 (numerator r) / float32 (denominator r)    
+        static member        instance (FromRational, _:decimal ) = fun (r:Rational) -> decimal (numerator r) / decimal (denominator r)
+        static member inline instance (FromRational, _:Ratio<_>) = fun (r:Rational) -> fromIntegral  (numerator r) % fromIntegral (denominator r)
+        static member        instance (FromRational, _:Complex ) = fun (r:Rational) -> Complex(float (numerator r) / float (denominator r), 0.0)
 
-type FromRational = FromRational with
-    static member        instance (_Fractional:FromRational, _:float   ) = fun (r:Rational) -> float   (numerator r) / float   (denominator r)
-    static member        instance (_Fractional:FromRational, _:float32 ) = fun (r:Rational) -> float32 (numerator r) / float32 (denominator r)    
-    static member        instance (_Fractional:FromRational, _:decimal ) = fun (r:Rational) -> decimal (numerator r) / decimal (denominator r)
-    static member inline instance (_Fractional:FromRational, _:Ratio<_>) = fun (r:Rational) -> fromIntegral  (numerator r) % fromIntegral (denominator r)
-    static member        instance (_Fractional:FromRational, _:Complex ) = fun (r:Rational) -> Complex(float (numerator r) / float (denominator r), 0.0)
-
-let inline fromRational (x:Rational) :'Fractional = Inline.instance FromRational x
+let inline fromRational (x:Rational) :'Fractional = Inline.instance Fractional.FromRational x
 
 let inline whenFractional a = let _ = if false then fromRational (1I % 1I) else a in ()
 
@@ -206,18 +214,18 @@ let inline ( **^^ ) (x:'Fractional) (n:'Integral) = if n >= 0G then x**^n else r
 
 
 // RealFrac class ---------------------------------------------------------
-
-type ProperFraction = ProperFraction with
-    static member        instance (_RealFrac:ProperFraction, x:float   , _) = fun () -> let t = truncate x in (bigint (decimal t), x - t)
-    static member        instance (_RealFrac:ProperFraction, x:float32 , _) = fun () -> let t = truncate x in (bigint (decimal t), x - t)
-    static member        instance (_RealFrac:ProperFraction, x:decimal , _) = fun () -> let t = truncate x in (bigint          t , x - t)
-    static member inline instance (_RealFrac:ProperFraction, r:Ratio<_>, _) = fun () -> 
-        let (a,b) = (numerator r, denominator r)
-        let (i,f) = quotRem a b
-        (i, f % b)
+module RealFrac =
+    type ProperFraction = ProperFraction with
+        static member        instance (ProperFraction, x:float   , _) = fun () -> let t = truncate x in (bigint (decimal t), x - t)
+        static member        instance (ProperFraction, x:float32 , _) = fun () -> let t = truncate x in (bigint (decimal t), x - t)
+        static member        instance (ProperFraction, x:decimal , _) = fun () -> let t = truncate x in (bigint          t , x - t)
+        static member inline instance (ProperFraction, r:Ratio<_>, _) = fun () -> 
+            let (a,b) = (numerator r, denominator r)
+            let (i,f) = quotRem a b
+            (i, f % b)
 
 let inline properFraction (x:'RealFrac) : 'Integral * 'RealFrac =
-    let (a, b:'RealFrac) = Inline.instance (ProperFraction, x) ()
+    let (a, b:'RealFrac) = Inline.instance (RealFrac.ProperFraction, x) ()
     (fromIntegral a, b)
 
 let inline truncate (x:'RealFrac) :'Integral = fst <| properFraction x
@@ -225,25 +233,27 @@ let inline truncate (x:'RealFrac) :'Integral = fst <| properFraction x
 
 // Real class -------------------------------------------------------------
 
-type ToRational = ToRational with
-    static member inline instance (_Real:ToRational, r:Ratio<_>, _) = fun () -> toInteger (numerator r) % toInteger (denominator r) :Rational
-    static member inline instance (_Real:ToRational, x:'t      , _) = fun () -> 
-        whenFractional x
-        let (i:Integer,d) = properFraction x
-        (i % 1I) + (truncate (decimal d * 1000000000000000000000000000M) % 1000000000000000000000000000I) :Rational
-    static member inline instance (_Real:ToRational, x:'t      , _) = fun () -> (toInteger x) % 1I
+module Real =
+    type ToRational = ToRational with
+        static member inline instance (ToRational, r:Ratio<_>, _) = fun () -> toInteger (numerator r) % toInteger (denominator r) :Rational
+        static member inline instance (ToRational, x:'t      , _) = fun () -> 
+            whenFractional x
+            let (i:Integer,d) = properFraction x
+            (i % 1I) + (truncate (decimal d * 1000000000000000000000000000M) % 1000000000000000000000000000I) :Rational
+        static member inline instance (ToRational, x:'t      , _) = fun () -> (toInteger x) % 1I
 
-let inline toRational (x:'Real) :Rational = Inline.instance (ToRational, x) ()
+let inline toRational (x:'Real) :Rational = Inline.instance (Real.ToRational, x) ()
 
 
 // Floating class ---------------------------------------------------------
 
-type Pi = Pi with
-    static member instance (Pi, _:float32) = fun () -> 3.14159274f
-    static member instance (Pi, _:float  ) = fun () -> System.Math.PI
-    static member instance (Pi, _:Complex) = fun () -> Complex(System.Math.PI, 0.0)
+module Floating =
+    type Pi = Pi with
+        static member instance (Pi, _:float32) = fun () -> 3.14159274f
+        static member instance (Pi, _:float  ) = fun () -> System.Math.PI
+        static member instance (Pi, _:Complex) = fun () -> Complex(System.Math.PI, 0.0)
 
-let inline pi() :'Floating = Inline.instance Pi ()
+let inline pi() :'Floating = Inline.instance Floating.Pi ()
 
 let inline ( **) a (b:'Floating) :'Floating = a ** b
 let inline sqrt    (x:'Floating) :'Floating = sqrt x
@@ -285,54 +295,53 @@ let rec foldl1 f = function (x::xs) -> foldl f x xs | [] -> failwith "EmptyList 
 open System
 let (|Null|Value|) (x: _ Nullable) = if x.HasValue then Value x.Value else Null
 
-type Fmap = Fmap with
-    static member instance (_Functor:Fmap, x:option<_>    , _) = fun f -> Option.map  f x
-    static member instance (_Functor:Fmap, x:List<_>      , _:List<'b>) = fun f -> List.map    f x :List<'b>
-    static member instance (_Functor:Fmap, g:_->_         , _) = (>>) g
-    static member instance (_Functor:Fmap, x:array<_>     , _) = fun f -> Array.map   f x
-    static member instance (_Functor:Fmap, x:_ [,]        , _) = fun f -> Array2D.map f x
-    static member instance (_Functor:Fmap, x:_ [,,]       , _) = fun f -> Array3D.map f x
-    static member instance (_Functor:Fmap, x:_ [,,,]      , _) = fun f ->
-        Array4D.init (x.GetLength 0) (x.GetLength 1) (x.GetLength 2) (x.GetLength 3) (fun a b c d -> f x.[a,b,c,d])
-    static member instance (_Functor:Fmap, x:Async<_>   , _) = fun f -> async.Bind(x,f >> async.Return)
-    static member instance (_Functor:Fmap, x:Nullable<_>, _) = fun f -> match x with
-                                                                        | Null -> Nullable()
-                                                                        | Value v -> Nullable(f v)
-    static member instance (_Functor:Fmap, x:Choice<_,_>, _) = fun f -> match x with
-                                                                        | Choice2Of2 x -> Choice2Of2(f x)
-                                                                        | Choice1Of2 x -> Choice1Of2 x
+module Functor =
+    type Fmap = Fmap with
+        static member instance (Fmap, x:option<_>    , _) = fun f -> Option.map  f x
+        static member instance (Fmap, x:List<_>      , _:List<'b>) = fun f -> List.map    f x :List<'b>
+        static member instance (Fmap, g:_->_         , _) = (>>) g
+        static member instance (Fmap, x:array<_>     , _) = fun f -> Array.map   f x
+        static member instance (Fmap, x:_ [,]        , _) = fun f -> Array2D.map f x
+        static member instance (Fmap, x:_ [,,]       , _) = fun f -> Array3D.map f x
+        static member instance (Fmap, x:_ [,,,]      , _) = fun f ->
+            Array4D.init (x.GetLength 0) (x.GetLength 1) (x.GetLength 2) (x.GetLength 3) (fun a b c d -> f x.[a,b,c,d])
+        static member instance (Fmap, x:Async<_>   , _) = fun f -> async.Bind(x,f >> async.Return)
+        static member instance (Fmap, x:Nullable<_>, _) = fun f -> match x with
+                                                                            | Null -> Nullable()
+                                                                            | Value v -> Nullable(f v)
+        static member instance (Fmap, x:Choice<_,_>, _) = fun f -> match x with
+                                                                            | Choice2Of2 x -> Choice2Of2(f x)
+                                                                            | Choice1Of2 x -> Choice1Of2 x
 
-let inline fmap f x = Inline.instance (Fmap, x) f
+let inline fmap f x = Inline.instance (Functor.Fmap, x) f
 
 
 // Monad class ------------------------------------------------------------
+module Monad =
+    type Return = Return with
+        static member instance (Return, _:option<'a>   ) = fun x -> Some x      :option<'a>
+        static member instance (Return, _:List<'a>     ) = fun x -> [x]         :List<'a>
+        static member instance (Return, _: 'r -> 'a    ) = fun x -> const'    x : 'r -> 'a
+        static member instance (Return, _:'a Async     ) = fun (x:'a) -> async.Return x
+        static member instance (Return, _:'a Nullable  ) = fun (x:'a) -> Nullable x
+        static member instance (Return, _:Choice<'a,'e>) = fun x -> Choice1Of2     x :Choice<'a,'e>
 
-type Return = Return with
-    static member instance (_Monad:Return, _:option<'a>   ) = fun x -> Some x      :option<'a>
-    static member instance (_Monad:Return, _:List<'a>     ) = fun x -> [x]         :List<'a>
-    static member instance (_Monad:Return, _: 'r -> 'a    ) = fun x -> const'    x : 'r -> 'a
-    static member instance (_Monad:Return, _:'a Async     ) = fun (x:'a) -> async.Return x
-    static member instance (_Monad:Return, _:'a Nullable  ) = fun (x:'a) -> Nullable x
-    static member instance (_Monad:Return, _:Choice<'a,'e>) = fun x -> Choice1Of2     x :Choice<'a,'e>
-
-let inline return' x = Inline.instance Return x
-
-type Bind = Bind with
-    static member instance (_Monad:Bind, x:option<_>   , _:option<'b> ) = fun (f:_->option<'b>) -> Option.bind  f x
-    static member instance (_Monad:Bind, x:List<_>     , _:List<'b>   ) = fun (f:_->List<'b>  ) -> List.collect f x
-    static member instance (_Monad:Bind, f:'r->'a      , _:'r->'b     ) = fun (k:_->_->'b) r    -> k (f r) r
+    type Bind = Bind with
+        static member instance (Bind, x:option<_>   , _:option<'b> ) = fun (f:_->option<'b>) -> Option.bind  f x
+        static member instance (Bind, x:List<_>     , _:List<'b>   ) = fun (f:_->List<'b>  ) -> List.collect f x
+        static member instance (Bind, f:'r->'a      , _:'r->'b     ) = fun (k:_->_->'b) r    -> k (f r) r
     
-    static member instance (_Monad:Bind, x:Async<'a>   , _:'b Async   ) = fun (f:_->Async<'b> ) -> async.Bind(x,f)
-    static member instance (_Monad:Bind, x:Nullable<_> , _:'b Nullable) = fun f ->
-        match x with
-        | Null -> Nullable()
-        | Value v -> f v : Nullable<'b>
-    static member instance (_Monad:Bind, x:Choice<_,'e>, _:Choice<'b,'e>) = fun (k:_->Choice<'b,_>) -> match x with
-                                                                                                       | Choice2Of2 l -> Choice2Of2 l
-                                                                                                       | Choice1Of2 r -> k r
-                                                                                                       
-let inline (>>=) x (f:_->'R) : 'R = Inline.instance (Bind, x) f
-let inline (=<<) (f:_->'R) x : 'R = Inline.instance (Bind, x) f
+        static member instance (Bind, x:Async<'a>   , _:'b Async   ) = fun (f:_->Async<'b> ) -> async.Bind(x,f)
+        static member instance (Bind, x:Nullable<_> , _:'b Nullable) = fun f ->
+            match x with
+            | Null -> Nullable()
+            | Value v -> f v : Nullable<'b>
+        static member instance (Bind, x:Choice<_,'e>, _:Choice<'b,'e>) = fun (k:_->Choice<'b,_>) -> match x with
+                                                                                                           | Choice2Of2 l -> Choice2Of2 l
+                                                                                                           | Choice1Of2 r -> k r
+let inline return' x = Inline.instance Monad.Return x                                                                                                    
+let inline (>>=) x (f:_->'R) : 'R = Inline.instance (Monad.Bind, x) f
+let inline (=<<) (f:_->'R) x : 'R = Inline.instance (Monad.Bind, x) f
 
 
 // Do notation ------------------------------------------------------------

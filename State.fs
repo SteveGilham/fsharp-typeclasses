@@ -4,16 +4,16 @@ open Prelude
 open Control.Applicative
 
 type State<'S,'A> = State of ('S->('A * 'S)) with
-    static member instance (_Functor:Fmap  , State m,              _) = fun f -> State(fun s -> let (a, s') = m s in (f a, s')) :State<'s,_>
+    static member instance (Functor.Fmap  , State m,              _) = fun f -> State(fun s -> let (a, s') = m s in (f a, s')) :State<'s,_>
 
 let runState (State x) = x :'s->_
 type State<'S,'A> with
-    static member instance (_Monad:Return, _:State<'s,'a>           ) = fun a -> State(fun s -> (a, s))                                :State<'s,'a>
-    static member instance (_Monad:Bind  ,   State m, _:State<'s,'b>) = fun k -> State(fun s -> let (a, s') = m s in runState(k a) s') :State<'s,'b>
+    static member instance (Monad.Return, _:State<'s,'a>           ) = fun a -> State(fun s -> (a, s))                                :State<'s,'a>
+    static member instance (Monad.Bind  ,   State m, _:State<'s,'b>) = fun k -> State(fun s -> let (a, s') = m s in runState(k a) s') :State<'s,'b>
 
 type State<'S,'A> with
-    static member instance (_Applicative:Pure, _:State<'s,'a>) = fun (x:'a) -> Applicative.pure' x :State<'s,_>
-    static member instance (_Applicative:Ap, f:State<'s,_>, x:State<'s,'a>, _:State<'s,'b>) = fun () -> Applicative.ap f x :State<'s,'b>
+    static member instance (Applicative.Pure, _:State<'s,'a>) = fun (x:'a) -> Applicative.pure' x :State<'s,_>
+    static member instance (Applicative.Ap, f:State<'s,_>, x:State<'s,'a>, _:State<'s,'b>) = fun () -> Applicative.ap f x :State<'s,'b>
 
 let mapState  f (State m)  = State(f << m) :State<'s,_>
 let withState f (State m)  = State(m << f) :State<'s,_>

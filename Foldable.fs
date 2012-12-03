@@ -2,33 +2,34 @@
 open Prelude
 open Data.Monoid
 
-type Foldr = Foldr with
-    static member instance (_Foldable:Foldr, x:option<_>, _) = fun (f,z) -> match x with |Some t -> f t z |None -> z
-    static member instance (_Foldable:Foldr, x:List<_>  , _) = fun (f,z) -> List.foldBack           f x z
+module Foldable =
+    type Foldr = Foldr with
+        static member instance (Foldr, x:option<_>, _) = fun (f,z) -> match x with |Some t -> f t z |None -> z
+        static member instance (Foldr, x:List<_>  , _) = fun (f,z) -> List.foldBack           f x z
 
-
-type Foldable = Foldable with
-    static member inline foldMap f x = Inline.instance (Foldr, x) (mappend << f, mempty())
+    let inline foldMap f x = Inline.instance (Foldr, x) (mappend << f, mempty())
    
-type FoldMap = FoldMap with
-    static member inline instance (_Foldable:FoldMap, x:option<_>, _) = fun f -> Foldable.foldMap f x
-    static member inline instance (_Foldable:FoldMap, x:List<_>  , _) = fun f -> Foldable.foldMap f x
-    static member inline instance (_Foldable:FoldMap, x:array<_> , _) = fun f -> Array.foldBack (mappend << f) x (mempty())
+    type FoldMap = FoldMap with
+        static member inline instance (FoldMap, x:option<_>, _) = fun f -> foldMap f x
+        static member inline instance (FoldMap, x:List<_>  , _) = fun f -> foldMap f x
+        static member inline instance (FoldMap, x:array<_> , _) = fun f -> Array.foldBack (mappend << f) x (mempty())
 
-let inline foldr (f: 'a -> 'b -> 'b) (z:'b) x :'b = Inline.instance (Foldr, x) (f,z)
-let inline foldMap f x = Inline.instance (FoldMap, x) f
+    let inline foldr f z x = 
+        let inline foldMap f x = Inline.instance (FoldMap, x) f
+        appEndo (foldMap (Endo << f ) x ) z
 
+    let inline foldl f z t = 
+        let inline foldMap f x = Inline.instance (FoldMap, x) f
+        appEndo (getDual (foldMap (Dual << Endo << flip f) t)) z
 
-type Foldable with
-    static member inline foldr f z x = appEndo (foldMap (Endo << f ) x ) z
-    static member inline foldl f z t = appEndo (getDual (foldMap (Dual << Endo << flip f) t)) z
+    type Foldr with
+        static member inline instance (Foldr, x:array<_>, _) = fun (f,z) -> foldr f z x
 
-type Foldr with
-    static member inline instance (_Foldable:Foldr, x:array<_>, _) = fun (f,z) -> Foldable.foldr f z x
+    type Foldl = Foldl with
+        static member instance (Foldl, x:option<_>, _) = fun (f,z) -> match x with |Some t -> f z t |None -> z
+        static member instance (Foldl, x:List<_>  , _) = fun (f,z) -> List.fold               f z x
+        static member instance (Foldl, x:array<_> , _) = fun (f,z) -> foldl          f z x
 
-type Foldl = Foldl with
-    static member instance (_Foldable:Foldl, x:option<_>, _) = fun (f,z) -> match x with |Some t -> f z t |None -> z
-    static member instance (_Foldable:Foldl, x:List<_>  , _) = fun (f,z) -> List.fold               f z x
-    static member instance (_Foldable:Foldl, x:array<_> , _) = fun (f,z) -> Foldable.foldl          f z x
-
-let inline foldl (f: 'a -> 'b -> 'a) (z:'a) x :'a = Inline.instance (Foldl, x) (f,z)
+let inline foldr (f: 'a -> 'b -> 'b) (z:'b) x :'b = Inline.instance (Foldable.Foldr, x) (f,z)
+let inline foldMap f x = Inline.instance (Foldable.FoldMap, x) f
+let inline foldl (f: 'a -> 'b -> 'a) (z:'a) x :'a = Inline.instance (Foldable.Foldl, x) (f,z)
