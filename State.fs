@@ -1,23 +1,24 @@
-﻿module Control.Monad.State
+﻿namespace InlineAbstractions.Types
 
-open Prelude
-open Control.Applicative
+open InlineAbstractions.TypeClasses
+open InlineAbstractions.TypeClasses.Applicative
 
-type State<'S,'A> = State of ('S->('A * 'S)) with
-    static member instance (Functor.Fmap  , State m,              _) = fun f -> State(fun s -> let (a, s') = m s in (f a, s')) :State<'s,_>
+type State<'S,'A> = State of ('S->('A * 'S))
 
-let runState (State x) = x :'s->_
+module State =
+    let runState (State x) = x :'s->_
+    let mapState  f (State m)  = State(f << m) :State<'s,_>
+    let withState f (State m)  = State(m << f) :State<'s,_>
+    let evalState (State sa) (s:'s) = fst(sa s)
+    let execState (State sa) (s:'s) = snd(sa s)
+    let get() = State (fun s -> (s , s))       :State<'s,_>
+    let put x = State (fun _ -> ((), x))       :State<'s,_>
+
+open State
+
 type State<'S,'A> with
+    static member instance (Functor.Fmap  , State m,              _) = fun f -> State(fun s -> let (a, s') = m s in (f a, s')) :State<'s,_>
     static member instance (Monad.Return, _:State<'s,'a>           ) = fun a -> State(fun s -> (a, s))                                :State<'s,'a>
     static member instance (Monad.Bind  ,   State m, _:State<'s,'b>) = fun k -> State(fun s -> let (a, s') = m s in runState(k a) s') :State<'s,'b>
-
-type State<'S,'A> with
-    static member instance (Applicative.Pure, _:State<'s,'a>) = fun (x:'a) -> Applicative.pure' x :State<'s,_>
-    static member instance (Applicative.Ap, f:State<'s,_>, x:State<'s,'a>, _:State<'s,'b>) = fun () -> Applicative.ap f x :State<'s,'b>
-
-let mapState  f (State m)  = State(f << m) :State<'s,_>
-let withState f (State m)  = State(m << f) :State<'s,_>
-let evalState (State sa) (s:'s) = fst(sa s)
-let execState (State sa) (s:'s) = snd(sa s)
-let get   = State (fun s -> (s , s))       :State<'s,_>
-let put x = State (fun _ -> ((), x))       :State<'s,_>
+    static member instance (Applicative.Pure, _:State<'s,'a>) = fun (x:'a) -> DefaultImpl.Pure x :State<'s,_>
+    static member instance (Applicative.Ap, f:State<'s,_>, x:State<'s,'a>, _:State<'s,'b>) = fun () -> DefaultImpl.Ap f x :State<'s,'b>

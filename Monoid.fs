@@ -1,6 +1,6 @@
-﻿module Data.Monoid
+﻿namespace InlineAbstractions.TypeClasses
 
-open Prelude
+open InlineAbstractions.Prelude
 
 module Monoid =
     type Mempty = Mempty with   
@@ -10,7 +10,7 @@ module Monoid =
         static member        instance (Mempty, _:string    ) = fun () -> ""
         static member        instance (Mempty, _:unit      ) = fun () -> ()
 
-    let inline mempty() = Inline.instance Mempty ()
+    let inline internal mempty() = Inline.instance Mempty ()
 
     type Mempty with static member inline instance (Mempty, _ : 'a*'b         ) = fun () ->
                         (mempty(),mempty()                           ): 'a*'b
@@ -28,7 +28,7 @@ module Monoid =
         static member        instance (Mappend, x:string   , _) = fun y -> x + y
         static member        instance (Mappend, ()         , _) = fun () -> ()
 
-    let inline mappend (x:'a) (y:'a) :'a = Inline.instance (Mappend, x) y
+    let inline internal mappend (x:'a) (y:'a) :'a = Inline.instance (Mappend, x) y
 
     type Mappend with
         static member inline instance (Mappend, x:option<_> , _) = fun y ->
@@ -49,23 +49,25 @@ module Monoid =
                         (mappend x1 y1,mappend x2 y2,mappend x3 y3,mappend x4 y4,mappend x5 y5) :'a*'b*'c*'d*'e
 
 
-let inline mempty()    = Monoid.mempty()
-let inline mappend x y = Monoid.mappend x y
-let inline mconcat x =
-    let foldR f s lst = List.foldBack f lst s
-    foldR mappend (mempty()) x
+    let inline internal mconcat x =
+        let foldR f s lst = List.foldBack f lst s
+        foldR mappend (mempty()) x
+
+namespace InlineAbstractions.Types
+open InlineAbstractions.Prelude
+open InlineAbstractions.TypeClasses
+open InlineAbstractions.TypeClasses.Monoid
 
 
 type Dual<'a> = Dual of 'a with
     static member inline instance (Monoid.Mempty , _:Dual<'m>   ) = fun () -> Dual (mempty()) :Dual<'m>
     static member inline instance (Monoid.Mappend,   Dual x  , _) = fun (Dual y) -> Dual (y </mappend/> x)
-let getDual (Dual x) = x
+module Dual = let inline  internal getDual (Dual x) = x
 
 type Endo<'a> = Endo of ('a -> 'a) with
     static member        instance (Monoid.Mempty , _:Endo<'m>   ) = fun () -> Endo id  :Endo<'m>
     static member        instance (Monoid.Mappend,   Endo f  , _) = fun (Endo g) -> Endo (f << g)
-
-let appEndo (Endo f) = f
+module Endo = let inline  internal appEndo (Endo f) = f
 
 
 type All = All of bool with
@@ -75,11 +77,3 @@ type All = All of bool with
 type Any = Any of bool with
     static member instance (Monoid.Mempty, _:Any     ) = fun () -> Any false
     static member instance (Monoid.Mappend,  Any x, _) = fun (Any y) -> Any (x || y)
-
-type Sum<'a> = Sum of 'a with
-    static member inline instance (Monoid.Mempty, _:Sum<'n>      ) = fun ()          -> Sum 0G     :Sum<'n>
-    static member inline instance (Monoid.Mappend,  Sum (x:'n), _) = fun (Sum(y:'n)) -> Sum (x + y):Sum<'n>
-
-type Product<'a> = Product of 'a with
-    static member inline instance (Monoid.Mempty, _:Product<'n>      ) = fun ()              -> Product 1G     :Product<'n>
-    static member inline instance (Monoid.Mappend,  Product (x:'n), _) = fun (Product(y:'n)) -> Product (x * y):Product<'n>

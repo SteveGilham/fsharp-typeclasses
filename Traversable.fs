@@ -1,20 +1,16 @@
-﻿module Data.Traversable
+﻿namespace InlineAbstractions.TypeClasses
 
-open Prelude
-open Control.Applicative
-open Data.Foldable
+open InlineAbstractions.Prelude
+open InlineAbstractions.TypeClasses.Functor
+open InlineAbstractions.TypeClasses.Applicative
+open InlineAbstractions.TypeClasses.Foldable
 
 module Traversable = 
     type Traverse = Traverse with
-        static member inline instance (Traverse, t:option<_>, _) = fun f ->
-            match t with
-            | None    -> pure' None
-            | Some x  -> fmap  Some (f x)
-    
-        static member inline instance (Traverse, t:List<_>  , _) = fun f ->
-            let cons x y = x :: y
+        static member inline instance (Traverse, t:option<_>, _) = fun f -> match t with Some x -> fmap Some (f x) | _ -> pure' None    
+        static member inline instance (Traverse, t:List<_>  , _) = fun f ->            
             let cons_f x ys = fmap cons (f x) <*> ys
-            (foldr cons_f (pure' [] )) t
+            foldr cons_f (pure' []) t
 
-let inline traverse f t = Inline.instance (Traversable.Traverse, t) f
-let inline sequenceA  x = traverse id x
+    let inline internal traverse f t = Inline.instance (Traverse, t) f
+    let inline internal sequenceA  x = traverse id x
