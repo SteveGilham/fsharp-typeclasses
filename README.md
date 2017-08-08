@@ -143,7 +143,7 @@ To summarize, we can have two different cases:
 
 ### Update
 
-Since [revision 117](http://code.google.com/p/fsharp-typeclasses/source/detail?r=bfb011cdbd668c42a676b5d2f06a80fc8e6900d0) the convention using the (?<-) operator was discarded. Now the convention is to use a method named "instance" and specify all parameters you need in order, like this:
+Since ~~[revision 117](http://code.google.com/p/fsharp-typeclasses/source/detail?r=bfb011cdbd668c42a676b5d2f06a80fc8e6900d0)~~  [3960b8d](https://github.com/SteveGilham/fsharp-typeclasses/commit/3960b8d6ae3efa2af4ad9930cab73b3b59a3733b) the convention using the (?<-) operator was discarded. Now the convention is to use a method named "instance" and specify all parameters you need in order, like this:
 
 `static member [inline] instance (TypeClassName:MemberName, p1:InputParam1, ... , pn:InputParamN, _:ReturnType )`
 
