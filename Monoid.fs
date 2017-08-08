@@ -3,12 +3,14 @@
 open Prelude
 
 type Mempty = Mempty with    
-    static member        instance (_Monoid:Mempty, _:List<'a> ) = fun () -> []      :List<'a>
-    static member        instance (_Monoid:Mempty, _:Maybe<'a>) = fun () -> Nothing :Maybe<'a>
-    static member        instance (_Monoid:Mempty, _:array<'a>) = fun () -> [||]    :array<'a>
-    static member        instance (_Monoid:Mempty, _:string   ) = fun () -> ""
-    static member        instance (_Monoid:Mempty, _:Ordering ) = fun () -> EQ
-    static member        instance (_Monoid:Mempty, _:unit     ) = fun () -> ()
+    static member        instance (_Monoid:Mempty, _:List<'a>        ) = fun () -> []       :List<'a>
+    static member        instance (_Monoid:Mempty, _:Maybe<'a>       ) = fun () -> Nothing  :Maybe<'a>
+    static member        instance (_Monoid:Mempty, _:array<'a>       ) = fun () -> [||]     :array<'a>
+    static member        instance (_Monoid:Mempty, _:string          ) = fun () -> ""
+    static member        instance (_Monoid:Mempty, _:Ordering        ) = fun () -> EQ
+    static member        instance (_Monoid:Mempty, _:unit            ) = fun () -> ()
+    static member        instance (_Monoid:Mempty, _:Set<'a>         ) = fun () -> Set.empty:Set<'a>
+    static member        instance (_Monoid:Mempty, _:Map<'key,'value>) = fun () -> Map.empty:Map<'key,'value>
 
 let inline mempty() = Inline.instance Mempty ()
 
@@ -32,6 +34,8 @@ type Mappend = Mappend with
         | (EQ,a) -> a
         | (GT,_) -> GT
     static member        instance (_Monoid:Mappend, ()    , _) = fun () -> ()
+    static member        instance (_Monoid:Mappend, x:Set<_>  , _) = fun y -> Set.union x y
+    static member        instance (_Monoid:Mappend, x:Map<_,_>, _) = fun (y: Map<_,_>) -> Seq.fold (fun m (KeyValue(k,v)) -> Map.add k v m) x y
 
 let inline mappend (x:'a) (y:'a) :'a = Inline.instance (Mappend, x) y
 
