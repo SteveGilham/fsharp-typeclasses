@@ -85,7 +85,39 @@ val result : int list = [11; 21; 12; 22]
 
 ## Translating from Haskell
 
-| Haskell | F# | |:------------|:-----------| | functions | | |const | const' | |return | return' | |pure | pure' | |show | string | | Polymorphic constants | | |mempty | mempty() | |mzero | mzero() | |id (arrows) | id'() | | Operators | | | $ | <| | | . | << | | . (arrows) | <<< | | :: | : | | /= | =/ | | | <<|> | | ^ | **^ | | ^^ | **^^ | | Literals | | | 5 | 5G | | "hello world" | !"hello world" | | func | | | Do notation | | | do | do' {...}| | x <- a | let! x = a| | f x | do! f x | | Do notation (last line) | | | return a | return a | | a | return! a|
+```
+| Haskell                   | F#                |
+|:------------              |:-----------       |
+| functions                 |                   | 
+| const                     | const'            | 
+| return                    | return'           | 
+| pure                      | pure'             | 
+| show                      | string            | 
+| Polymorphic constants     |                   | 
+| mempty                    | mempty()          | 
+| mzero                     | mzero()           | 
+| id (arrows)               | id'()             | 
+| Operators                 |                   | 
+| $                         | <|                | 
+| .                         | <<                | 
+| . (arrows)                | <<<               | 
+| ::                        | :                 | 
+| /=                        | =/                | 
+| |<<                       | >                 | 
+| ^                         | **^               | 
+| ^^                        | **^^              | 
+| Literals                  |                   | 
+| 5                         | 5G                | 
+| "hello world"             | !"hello world"    | 
+| func                      |                   | 
+| Do notation               |                   | 
+| do                        | do' {...}         | 
+| x <- a                    | let! x = a        | 
+| f x                       | do! f x           | 
+| Do notation (last line)   |                   | 
+| return a                  | return a          | 
+| a                         | return! a         |
+```
 
 ## *_NOTES_*
 
